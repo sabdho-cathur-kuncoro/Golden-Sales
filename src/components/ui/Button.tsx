@@ -1,11 +1,6 @@
 // components/ui/Button.tsx
 
-import {
-  FontFamily,
-  primaryColor,
-  whiteColor,
-  whiteTextStyle,
-} from "@/constants/theme";
+import { FontFamily, primaryColor, whiteColor } from "@/constants/theme";
 import { ArrowRight } from "lucide-react-native";
 import { Pressable, StyleSheet, Text } from "react-native";
 import Animated, {
@@ -17,7 +12,12 @@ import Gap from "./Gap";
 
 type Props = {
   title: string;
+  titleColor?: any;
+  bgColor?: any;
+  borderColor?: any;
+  border?: number;
   isIconVisible?: boolean;
+  radius?: number;
   onPress?: () => void;
 };
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -25,6 +25,11 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export default function Button({
   title,
   isIconVisible = false,
+  radius = 10,
+  titleColor = whiteColor,
+  bgColor = primaryColor,
+  borderColor = primaryColor,
+  border = 0,
   onPress,
 }: Props) {
   const scale = useSharedValue(1);
@@ -44,12 +49,21 @@ export default function Button({
   };
   return (
     <AnimatedPressable
-      style={[styles.button, btnStyle]}
+      style={[
+        styles.button,
+        btnStyle,
+        {
+          borderRadius: radius,
+          backgroundColor: bgColor,
+          borderWidth: border,
+          borderColor,
+        },
+      ]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
     >
-      <Text style={[styles.text, whiteTextStyle]}>{title}</Text>
+      <Text style={[styles.text, { color: titleColor }]}>{title}</Text>
       {isIconVisible && (
         <>
           <Gap width={10} />
@@ -64,12 +78,10 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
     padding: 14,
-    borderRadius: 10,
-    backgroundColor: primaryColor,
     alignItems: "center",
     justifyContent: "center",
   },
   text: {
-    fontFamily: FontFamily.satoshiBold,
+    fontFamily: FontFamily.satoshiRegular,
   },
 });

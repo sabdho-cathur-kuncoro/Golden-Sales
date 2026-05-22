@@ -1,7 +1,7 @@
 import Shadow from "@/assets/images/splash-shadow.svg";
 import { FontFamily, primaryColor, whiteTextStyle } from "@/constants/theme";
 import React, { useEffect } from "react";
-import { Dimensions, Image, StyleSheet, View } from "react-native";
+import { Dimensions, Image, StatusBar, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -123,6 +123,7 @@ export default function AnimatedSplash({ onFinish }: Props) {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle={"light-content"} />
       <Animated.View style={[styles.shadow, shadowStyle]}>
         <Shadow width={width / 2.2} height={100} />
       </Animated.View>

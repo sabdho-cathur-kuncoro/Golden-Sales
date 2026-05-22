@@ -1,5 +1,5 @@
 import CartIcon from "@/assets/icons/ic-cart.svg";
-import { AnimatedPressable, Gap } from "@/components/ui";
+import { AnimatedPressable, Gap, TileOrder } from "@/components/ui";
 import { CategoryApproval, Order } from "@/constants/dummy";
 import {
   bgColor,
@@ -8,21 +8,15 @@ import {
   dot,
   FontFamily,
   greyColor,
-  greySecondaryColor,
   greyTertiaryColor,
-  line,
-  orangeRGBAColor,
-  orangeStrokeColor,
-  orangeTextStyle,
   primaryColor,
-  rowCenter,
   screen,
   SPACE_16,
-  SPACE_4,
   strokeColor,
   whiteColor,
   whiteTextStyle,
 } from "@/constants/theme";
+import { router } from "expo-router";
 import { Bell, Filter, Search } from "lucide-react-native";
 import React, { useCallback } from "react";
 import {
@@ -43,72 +37,12 @@ const Approval = () => {
   );
   const renderItemFlatlist = ({ item }: any) => {
     return (
-      <View style={styles.tileContainer}>
-        <View style={rowCenter}>
-          <View style={{ width: "49%" }}>
-            <Text
-              style={[blackTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
-            >
-              {item?.id}
-            </Text>
-          </View>
-          <View style={{ width: "49%", alignItems: "flex-end" }}>
-            <Text style={[styles.textDate]}>{item?.created_at}</Text>
-          </View>
-        </View>
-        <Gap height={SPACE_16} />
-        <View style={line} />
-        <Gap height={SPACE_16} />
-        <View style={rowCenter}>
-          <View style={{ width: "49%" }}>
-            <Text
-              style={[blackTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
-            >
-              {item?.customer_name}
-            </Text>
-            <Gap height={SPACE_4} />
-            <Text style={[blackTextStyle]}>(Cabang {item?.branch})</Text>
-          </View>
-          <View style={{ width: "49%", alignItems: "flex-end" }}>
-            <View style={styles.statusContainer}>
-              <Text
-                style={[
-                  orangeTextStyle,
-                  { fontSize: 12, fontFamily: FontFamily.satoshiMedium },
-                ]}
-              >
-                {item?.status_order_name}
-              </Text>
-            </View>
-          </View>
-        </View>
-        <Gap height={SPACE_16} />
-        <View style={line} />
-        <Gap height={SPACE_16} />
-        <View style={rowCenter}>
-          <View style={{ width: "49%" }}>
-            <Text style={[blackTextStyle]}>Total Item</Text>
-            <Gap height={SPACE_4} />
-            <Text
-              style={[
-                orangeTextStyle,
-                { fontFamily: FontFamily.satoshiMedium },
-              ]}
-            >
-              {item?.qty} Item
-            </Text>
-          </View>
-          <View style={{ width: "49%", alignItems: "flex-end" }}>
-            <Text style={[blackTextStyle]}>Metode Pembayaran</Text>
-            <Gap height={SPACE_4} />
-            <Text
-              style={[blackTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
-            >
-              {item?.payment_method}
-            </Text>
-          </View>
-        </View>
-      </View>
+      <TileOrder
+        item={item}
+        onPress={() =>
+          router.push({ pathname: "/approval-detail", params: { id: item.id } })
+        }
+      />
     );
   };
 
@@ -141,7 +75,7 @@ const Approval = () => {
               justifyContent: "flex-end",
             }}
           >
-            <AnimatedPressable>
+            <AnimatedPressable onPress={() => router.push("/notifikasi")}>
               <View style={styles.iconContainer}>
                 <Bell size={22} color={primaryColor} />
                 <View
@@ -213,7 +147,7 @@ const Approval = () => {
           </View>
         </View>
         <FlatList
-          data={Order.filter((d) => d.status_order === 4)}
+          data={Order.filter((d) => d.status_order === 1)}
           keyExtractor={keyExtractor}
           renderItem={renderItemFlatlist}
           contentContainerStyle={styles.flatlistContent}
@@ -276,25 +210,5 @@ const styles = StyleSheet.create({
   flatlistContent: {
     paddingTop: SPACE_16,
     paddingHorizontal: SPACE_16,
-  },
-  tileContainer: {
-    width: "100%",
-    backgroundColor: whiteColor,
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  statusContainer: {
-    backgroundColor: orangeRGBAColor,
-    borderWidth: 1,
-    borderColor: orangeStrokeColor,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 57,
-  },
-  textDate: {
-    fontFamily: FontFamily.satoshiMedium,
-    fontSize: 12,
-    color: greySecondaryColor,
   },
 });

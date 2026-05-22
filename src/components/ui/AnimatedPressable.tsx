@@ -30,6 +30,7 @@ const AnimatedPressable = ({ children, onPress }: any) => {
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
+      hitSlop={6}
     >
       {children}
     </AnimatedPressableComponent>

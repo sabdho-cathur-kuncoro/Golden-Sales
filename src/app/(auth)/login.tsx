@@ -14,6 +14,7 @@ import React from "react";
 import {
   Image,
   ImageBackground,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -28,6 +29,7 @@ const Login = () => {
       style={styles.page}
       source={require("@/assets/images/bg-login.png")}
     >
+      <StatusBar barStyle={"light-content"} />
       <View style={{ flexDirection: "row", marginBottom: 28 }}>
         <Image
           source={require("../../../assets/images/logo-golden.png")}

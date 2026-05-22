@@ -1,9 +1,9 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_300_9499)">
-<mask id="mask0_300_9499" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
-<path d="M0 1.90735e-06H24V24H0V1.90735e-06Z" fill="currentColor"/>
+<g clip-path="url(#clip0_300_9401)">
+<mask id="mask0_300_9401" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+<path d="M0 1.90735e-06H24V24H0V1.90735e-06Z" fill="white"/>
 </mask>
-<g mask="url(#mask0_300_9499)">
+<g mask="url(#mask0_300_9401)">
 <path d="M13.9219 23.2969H23.2969" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M23.2969 15.3281L18.6094 12.9844L13.9219 15.3281V17.2031H23.2969V15.3281Z" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M21.8906 23.2969V17.2031" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
@@ -14,20 +14,20 @@
 </g>
 <path d="M8.67188 11.0156V4.92188" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M5.39062 11.0156V4.92188" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-<mask id="mask1_300_9499" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
-<path d="M0 1.90735e-06H24V24H0V1.90735e-06Z" fill="currentColor"/>
+<mask id="mask1_300_9401" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+<path d="M0 1.90735e-06H24V24H0V1.90735e-06Z" fill="white"/>
 </mask>
-<g mask="url(#mask1_300_9499)">
+<g mask="url(#mask1_300_9401)">
 <path d="M2.10938 11.0156V4.92188" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
-<path d="M12.9844 3.51564H18.6094V9.14064" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M16.7344 7.26564L18.6094 9.14064L20.4844 7.26564" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M12.9844 3.51562H18.6094V9.14062" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M16.7344 7.26563L18.6094 9.14062L20.4844 7.26563" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M11.0156 20.4844H5.39062V14.8594" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M7.26562 16.7344L5.39062 14.8594L3.51562 16.7344" stroke="currentColor" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 <defs>
-<clipPath id="clip0_300_9499">
-<rect width="24" height="24" fill="currentColor"/>
+<clipPath id="clip0_300_9401">
+<rect width="24" height="24" fill="white"/>
 </clipPath>
 </defs>
 </svg>

@@ -68,6 +68,7 @@ export const bgColor = "#F2F3F5";
 export const bgSecondaryColor = "#F4F1FE";
 export const bgTertiaryColor = "#F0ECFE";
 export const blackColor = "#202020";
+export const blackRBGAColor = "rgba(0,0,0,0.2)";
 export const whiteColor = "#FFFFFF";
 export const whiteSecondaryColor = "#EEEEEE";
 export const whiteThirdColor = "#F6F7F8";
@@ -77,6 +78,9 @@ export const greyTertiaryColor = "#E6E6E6";
 export const yellowColor = "#FFB34A";
 export const yellowSecondaryColor = "#FFD499";
 export const darkBlueColor = "#0D042F";
+export const darkBlueRGBAColor = "#F7F6FE";
+export const pinkColor = "#FE9F9F";
+export const pinkSecondaryColor = "#FFF5F5";
 export const lightBlueColor = "#A4C0FE";
 export const blueColor = "#003E97";
 export const blueRGBAColor = "#E6EEFF";
@@ -93,12 +97,15 @@ export const purpleColor = "#7956BF";
 export const purpleRGBAColor = "#F0ECF9";
 export const purpleStrokeColor = "#8B6DCF";
 export const greenColor = "#0DB561";
+export const greenSecondaryColor = "#005245";
 export const greenRGBAColor = "#F0FDF4";
+export const greenSecondaryRGBAColor = "#E5FFFA";
 export const strokeColor = "#CCD7EB";
 export const lineColor = "#D4D7DE";
 export const borderColor = "#B2C2FF";
 export const borderInputColor = "#EDF1F3";
 export const tabBarColor = "#B0A8BA";
+export const inactiveColor = "#B4BED4";
 
 export const primaryTextStyle = {
   fontFamily: "satoshiRegular",
@@ -116,6 +123,10 @@ export const greyTextStyle = {
   fontFamily: "satoshiRegular",
   color: greyColor,
 };
+export const inactiveTextStyle = {
+  fontFamily: "satoshiRegular",
+  color: inactiveColor,
+};
 export const redTextStyle = {
   fontFamily: "satoshiRegular",
   color: redColor,
@@ -123,6 +134,10 @@ export const redTextStyle = {
 export const greenTextStyle = {
   fontFamily: "satoshiRegular",
   color: greenColor,
+};
+export const greenSecTextStyle = {
+  fontFamily: "satoshiRegular",
+  color: greenSecondaryColor,
 };
 export const yellowTextStyle = {
   fontFamily: "satoshiRegular",
@@ -148,15 +163,18 @@ export const FontFamily = {
   satoshiBold: "satoshiBold",
 };
 
+export const mainContent = { flex: 1, backgroundColor: bgColor };
+
 export const shadow = {
   shadowColor: blackColor,
   shadowOffset: {
     width: 0,
-    height: 2,
+    height: 5,
   },
-  shadowOpacity: 0.25,
-  shadowRadius: 3.84,
-  elevation: 3,
+  shadowOpacity: 0.34,
+  shadowRadius: 6.27,
+
+  elevation: 10,
 };
 
 export const screen = {
@@ -164,6 +182,16 @@ export const screen = {
   backgroundColor: bgColor,
   paddingTop: 48,
 };
+
+export const footerStyle = {
+  position: "absolute",
+  bottom: 0,
+  width: "100%",
+  alignItems: "center",
+  paddingHorizontal: SPACE_16,
+  paddingBottom: SPACE_24,
+  minHeight: 96,
+} as const;
 
 export const rowCenter = {
   flexDirection: "row",
@@ -186,6 +214,13 @@ export const line = {
   width: "100%",
   height: 1,
   backgroundColor: lineColor,
+} as const;
+
+export const lineDash = {
+  width: "100%",
+  borderWidth: 1,
+  borderStyle: "dashed",
+  borderColor: lineColor,
 } as const;
 
 export const paddingScroll = {

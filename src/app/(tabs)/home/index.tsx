@@ -34,9 +34,17 @@ import {
   yellowTextStyle,
 } from "@/constants/theme";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { Bell, ChevronRight } from "lucide-react-native";
 import React from "react";
-import { ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { currencyFormat } from "../../../../utils/currencyFormat";
 
 const Home = () => {
@@ -65,7 +73,7 @@ const Home = () => {
               justifyContent: "flex-end",
             }}
           >
-            <AnimatedPressable>
+            <AnimatedPressable onPress={() => router.push("/notifikasi")}>
               <View style={styles.iconContainer}>
                 <Bell size={22} color={primaryColor} />
                 <View
@@ -173,7 +181,10 @@ const Home = () => {
               },
             ]}
           >
-            <View style={{ minWidth: 74, alignItems: "center" }}>
+            <Pressable
+              onPress={() => router.push("/request-product")}
+              style={{ minWidth: 74, alignItems: "center" }}
+            >
               <View style={styles.iconMenuContainer}>
                 <ReqItemIcon width={28} height={28} color={primaryColor} />
               </View>
@@ -186,8 +197,11 @@ const Home = () => {
               >
                 Minta Barang
               </Text>
-            </View>
-            <View style={{ minWidth: 74, alignItems: "center" }}>
+            </Pressable>
+            <Pressable
+              style={{ minWidth: 74, alignItems: "center" }}
+              onPress={() => router.push("/order")}
+            >
               <View style={styles.iconMenuContainer}>
                 <OrderIcon width={28} height={28} color={primaryColor} />
               </View>
@@ -200,8 +214,11 @@ const Home = () => {
               >
                 Order
               </Text>
-            </View>
-            <View style={{ minWidth: 74, alignItems: "center" }}>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/report")}
+              style={{ minWidth: 74, alignItems: "center" }}
+            >
               <View style={styles.iconMenuContainer}>
                 <LaporanIcon width={28} height={28} color={primaryColor} />
               </View>
@@ -214,8 +231,11 @@ const Home = () => {
               >
                 Laporan
               </Text>
-            </View>
-            <View style={{ minWidth: 74, alignItems: "center" }}>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/catalog")}
+              style={{ minWidth: 74, alignItems: "center" }}
+            >
               <View style={styles.iconMenuContainer}>
                 <KatalogIcon width={28} height={28} color={primaryColor} />
               </View>
@@ -228,7 +248,7 @@ const Home = () => {
               >
                 Katalog
               </Text>
-            </View>
+            </Pressable>
           </View>
         </View>
         <Gap height={20} />

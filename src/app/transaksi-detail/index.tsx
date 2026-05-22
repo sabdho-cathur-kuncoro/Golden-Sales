@@ -12,7 +12,7 @@ import {
   line,
   lineColor,
   orangeTextStyle,
-  primaryTextStyle,
+  primaryColor,
   rowCenter,
   screen,
   shadow,
@@ -23,14 +23,23 @@ import {
   whiteColor,
   whiteThirdColor,
 } from "@/constants/theme";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { currencyFormat } from "../../../utils/currencyFormat";
 import { formatDate, formatDateTime } from "../../../utils/days";
 
 const TransaksiDetail = () => {
   const { id } = useLocalSearchParams();
+  const { width } = useWindowDimensions();
   const [detailTransaksi, setDetailTransaksi] = useState<any>(null);
 
   useEffect(() => {
@@ -151,7 +160,15 @@ const TransaksiDetail = () => {
                 Status Transaksi
               </Text>
             </View>
-            <View style={[styles.half, { alignItems: "flex-end" }]}>
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: "/status-order",
+                  params: { id, status: detailTransaksi?.status_order },
+                })
+              }
+              style={[styles.half, { alignItems: "flex-end" }]}
+            >
               <Text
                 style={[
                   blueTextStyle,
@@ -160,7 +177,7 @@ const TransaksiDetail = () => {
               >
                 Lihat Detail
               </Text>
-            </View>
+            </Pressable>
           </View>
           <Gap height={10} />
           <View style={line} />
@@ -187,7 +204,7 @@ const TransaksiDetail = () => {
                   { fontFamily: FontFamily.satoshiMedium },
                 ]}
               >
-                Diproses SO
+                {detailTransaksi?.status_order_name}
               </Text>
               <Gap height={SPACE_4} />
               <Text style={[greyTextStyle, { fontSize: 12 }]}>
@@ -213,56 +230,74 @@ const TransaksiDetail = () => {
                 key={item.id}
                 style={{
                   width: "100%",
+                  borderBottomColor: lineColor,
+                  borderStyle: "dashed",
                   paddingBottom: isLast ? 0 : SPACE_16,
                   marginBottom: isLast ? 0 : SPACE_16,
                   borderBottomWidth: isLast ? 0 : 1,
-                  borderBottomColor: lineColor,
-                  borderStyle: "dashed",
                 }}
               >
-                <View style={rowCenter}>
-                  <View style={[{ width: "55%" }]}>
-                    <Text
-                      style={[
-                        blackTextStyle,
-                        { fontFamily: FontFamily.satoshiMedium },
-                      ]}
-                    >
-                      {item?.product_name}
-                    </Text>
-                  </View>
-                  <View style={[{ width: "44%", alignItems: "flex-end" }]}>
-                    <Text
-                      style={[
-                        primaryTextStyle,
-                        { fontSize: 16, fontFamily: FontFamily.satoshiMedium },
-                      ]}
-                    >
-                      {item?.qty} Pcs
-                    </Text>
+                <View style={[rowCenter, { width: "100%" }]}>
+                  <View
+                    style={[
+                      {
+                        width: "100%",
+                        flexDirection: "row",
+                        alignItems: "center",
+                      },
+                    ]}
+                  >
+                    <View style={styles.imgContainer}>
+                      <Image
+                        source={require("@/assets/images/img3.png")}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: 8,
+                        }}
+                        contentFit="fill"
+                      />
+                    </View>
+                    <View style={{ width: "82%" }}>
+                      <Text
+                        style={[
+                          blackTextStyle,
+                          { fontFamily: FontFamily.satoshiMedium },
+                        ]}
+                      >
+                        {item?.product_name}
+                      </Text>
+                      <Gap height={10} />
+                      <View style={[rowCenter, { width: "100%" }]}>
+                        <View style={[styles.half]}>
+                          <Text
+                            style={[
+                              greyTextStyle,
+                              {
+                                fontSize: 12,
+                              },
+                            ]}
+                          >
+                            {currencyFormat(item?.price)} x {item?.qty}
+                          </Text>
+                        </View>
+                        <View style={[styles.half, { alignItems: "flex-end" }]}>
+                          <Text
+                            style={[
+                              orangeTextStyle,
+                              { fontFamily: FontFamily.satoshiMedium },
+                            ]}
+                          >
+                            {currencyFormat(item?.sub_total_price)}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
                   </View>
                 </View>
                 <Gap height={10} />
-                <View style={rowCenter}>
-                  <View style={[styles.half]}>
-                    <Text style={[greyTextStyle, { fontSize: 12 }]}>
-                      {item?.category}
-                    </Text>
-                  </View>
-                  <View style={[styles.half, { alignItems: "flex-end" }]}>
-                    <Text
-                      style={[
-                        orangeTextStyle,
-                        { fontFamily: FontFamily.satoshiMedium },
-                      ]}
-                    >
-                      {currencyFormat(item?.sub_total_price)}
-                    </Text>
-                  </View>
-                </View>
-                <Gap height={SPACE_16} />
                 <Text style={[greyTextStyle, { fontSize: 12 }]}>
-                  Catatan Customer: {item?.customer_note}
+                  Catatan Customer: {item?.customer_note ?? "-"}
                 </Text>
               </View>
             );
@@ -372,7 +407,36 @@ const TransaksiDetail = () => {
         </View>
       </ScrollView>
       <View style={[shadow, styles.footer]}>
-        <Button title="Chat" />
+        {detailTransaksi?.status_order === 3 ? (
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View style={{ width: "47%" }}>
+              <Button
+                title="Chat"
+                titleColor={primaryColor}
+                bgColor={"transparent"}
+                border={1}
+                borderColor={primaryColor}
+              />
+            </View>
+            <View style={{ width: "47%" }}>
+              <Button
+                title="Selesaikan Order"
+                onPress={() =>
+                  router.push({ pathname: "/konfirmasi-order", params: { id } })
+                }
+              />
+            </View>
+          </View>
+        ) : (
+          <Button title="Chat" />
+        )}
       </View>
     </View>
   );
@@ -395,6 +459,15 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 20 / 2,
     borderWidth: 3,
+  },
+  imgContainer: {
+    width: "15%",
+    height: 48,
+    borderRadius: 8,
+    marginRight: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
   },
   noteContent: {
     width: "100%",
