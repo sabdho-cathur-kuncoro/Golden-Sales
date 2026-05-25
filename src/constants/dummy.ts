@@ -816,3 +816,67 @@ export const ChatMessage = [
     created_at: d,
   },
 ];
+
+// NOTE: CART
+export const CartOrderDetail = [
+  {
+    id: "CAT-1",
+    categoryName: "Kartu Perdana",
+    subCategoryName: "Telkomsel",
+    isCategorySelected: false,
+    product: [
+      {
+        id: 1,
+        name: "Simpati 3 GB",
+        normalPrice: 30_000,
+        discountPrice: 25_000,
+        isProductSelected: false,
+        note: "",
+        qty: 10,
+        unit: "pcs",
+        voucher: ["THR2026"],
+      },
+      {
+        id: 2,
+        name: "by.U 3 GB",
+        normalPrice: 30_000,
+        discountPrice: null,
+        isProductSelected: false,
+        note: "",
+        qty: 10,
+        unit: "pcs",
+        voucher: [],
+      },
+      {
+        id: 3,
+        name: "Simpati Segel Nol K",
+        normalPrice: 11_000,
+        discountPrice: null,
+        isProductSelected: false,
+        note: "",
+        qty: 10,
+        unit: "pcs",
+        voucher: [],
+      },
+    ],
+  },
+  {
+    id: "CAT-2",
+    categoryName: "Voucher Fisik",
+    subCategoryName: "by.U",
+    isCategorySelected: false,
+    product: [
+      {
+        id: 1,
+        name: "Simpati 3 GB",
+        normalPrice: 30_000,
+        discountPrice: null,
+        isProductSelected: false,
+        note: "",
+        qty: 10,
+        unit: "pcs",
+        voucher: [],
+      },
+    ],
+  },
+];

@@ -21,7 +21,9 @@ import {
   whiteSecondaryColor,
   whiteTextStyle,
 } from "@/constants/theme";
+import { useConfirmStore } from "@/features/shared/store/confirm.store";
 import AntDesignIC from "@expo/vector-icons/AntDesign";
+import { router } from "expo-router";
 import {
   BookOpen,
   ChevronRight,
@@ -31,10 +33,28 @@ import {
   Smartphone,
 } from "lucide-react-native";
 import React from "react";
-import { ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 const Profile = () => {
-  const onLogout = () => {};
+  const { show } = useConfirmStore();
+  const handleLogout = () => {
+    show({
+      title: "Logout",
+      message: "Yakin ingin keluar akun ini?",
+      type: "danger",
+      onConfirm: async () => {
+        // await deleteItem();
+        console.log("LOGOUT");
+      },
+    });
+  };
   return (
     <View style={[screen, { backgroundColor: primaryColor }]}>
       <StatusBar barStyle={"light-content"} />
@@ -51,15 +71,18 @@ const Profile = () => {
                 { fontSize: 16, fontFamily: FontFamily.satoshiBold },
               ]}
             >
-              Ahmad Kurniawan
+              Dudung Sadudung
             </Text>
             <Gap height={SPACE_4} />
             <Text style={[whiteTextStyle, { fontSize: 16 }]}>SLS-99281</Text>
           </View>
         </View>
-        <View style={styles.chevronRightContainer}>
+        <Pressable
+          onPress={() => router.push("/profil-detail")}
+          style={styles.chevronRightContainer}
+        >
           <ChevronRight size={28} color={whiteColor} />
-        </View>
+        </Pressable>
       </View>
       <View style={[styles.mainContainer]}>
         <ScrollView contentContainerStyle={[paddingScroll]}>
@@ -268,7 +291,7 @@ const Profile = () => {
             </View>
           </AnimatedPressable>
           {/* LOGOUT */}
-          <AnimatedPressable onPress={onLogout}>
+          <AnimatedPressable onPress={handleLogout}>
             <View style={[styles.cardContainer, rowCenter]}>
               <View
                 style={[

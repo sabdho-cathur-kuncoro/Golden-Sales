@@ -5,6 +5,7 @@ export { default as Button } from "./Button";
 export { default as ChatBubble } from "./ChatBubble";
 export { default as Gap } from "./Gap";
 export { default as Header } from "./Header";
+export { default as TileCart } from "./TileCart";
 export { default as TileChat } from "./TileChat";
 export { default as TileNotif } from "./TileNotif";
 export { default as TileOrder } from "./TileOrder";

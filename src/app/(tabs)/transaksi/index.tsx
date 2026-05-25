@@ -88,7 +88,7 @@ const Transaksi = () => {
               </View>
             </AnimatedPressable>
             <Gap width={20} />
-            <AnimatedPressable>
+            <AnimatedPressable onPress={() => router.push("/cart")}>
               <View style={styles.iconContainer}>
                 <CartIcon width={22} height={22} color={primaryColor} />
               </View>

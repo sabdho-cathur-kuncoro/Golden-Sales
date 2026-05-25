@@ -53,7 +53,7 @@ const Header = ({
       ) : null}
       {isIconVisible ? (
         <View style={{ width: "14%", alignItems: "flex-end" }}>
-          <AnimatedPressable onPress={() => router.push("/")}>
+          <AnimatedPressable onPress={() => router.push("/cart")}>
             <View style={styles.iconContainer}>
               <CartIcon width={22} color={primaryColor} />
             </View>

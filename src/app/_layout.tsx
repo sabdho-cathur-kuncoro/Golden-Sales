@@ -1,3 +1,4 @@
+import { GlobalConfirmModal, GlobalInputModal } from "@/components/modal";
 import { AppBottomSheet, Toast } from "@/components/ui";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -41,6 +42,8 @@ export default function TabLayout() {
           </Stack>
           <AppBottomSheet />
           <Toast />
+          <GlobalConfirmModal />
+          <GlobalInputModal />
         </KeyboardProvider>
       </View>
     </GestureHandlerRootView>
