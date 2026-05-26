@@ -4,7 +4,7 @@ import {
   redColor,
   yellowColor,
 } from "@/constants/theme";
-import { useToastStore } from "../store/toast.store";
+import { useToastStore } from "@/stores/toast.store";
 
 export const useToast = () => {
   const showToast = useToastStore((s) => s.showToast);

@@ -28,8 +28,8 @@ import {
   SPACE_8,
   whiteColor,
 } from "@/constants/theme";
-import { useConfirmStore } from "@/features/shared/store/confirm.store";
-import { useInputModalStore } from "@/features/shared/store/input.store";
+import { useConfirmStore } from "@/stores/confirm.store";
+import { useInputModalStore } from "@/stores/input.store";
 import { Info, Search } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";

@@ -171,16 +171,7 @@ const Home = () => {
         <Gap height={20} />
         {/* MENU */}
         <View style={[paddingH]}>
-          <View
-            style={[
-              styles.container,
-              {
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              },
-            ]}
-          >
+          <View style={[styles.container, rowCenter]}>
             <Pressable
               onPress={() => router.push("/request-product")}
               style={{ minWidth: 74, alignItems: "center" }}

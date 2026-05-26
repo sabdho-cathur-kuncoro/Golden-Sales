@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { FontFamily, shadow, whiteColor } from "@/constants/theme";
-import { useToastStore } from "@/features/shared/store/toast.store";
+import { useToastStore } from "@/stores/toast.store";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useEffect, useState } from "react";

@@ -11,7 +11,7 @@ import {
   whiteColor,
   whiteTextStyle,
 } from "@/constants/theme";
-import { useConfirmStore } from "@/features/shared/store/confirm.store";
+import { useConfirmStore } from "@/stores/confirm.store";
 import { useState } from "react";
 import {
   ActivityIndicator,

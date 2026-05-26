@@ -11,7 +11,7 @@ import {
   SPACE_8,
   whiteColor,
 } from "@/constants/theme";
-import useCatalog from "@/features/catalog/hooks/useCatalog";
+import useCatalog from "@/hooks/useCatalog";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";

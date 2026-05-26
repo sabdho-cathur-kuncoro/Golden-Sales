@@ -12,7 +12,7 @@ import { BackHandler, View } from "react-native";
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 
 import { SPACE_48 } from "@/constants/theme";
-import { useBottomSheetStore } from "@/features/shared/store/bottomSheet.store";
+import { useBottomSheetStore } from "@/stores/bottomSheet.store";
 
 export type AppBottomSheetRef = {
   expand: () => void;

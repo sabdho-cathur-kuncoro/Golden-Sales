@@ -16,8 +16,8 @@ import {
   SPACE_16,
   whiteColor,
 } from "@/constants/theme";
-import { useBottomSheetStore } from "@/features/shared/store/bottomSheet.store";
-import { useGlobalStore } from "@/features/shared/store/global.store";
+import { useBottomSheetStore } from "@/stores/bottomSheet.store";
+import { useGlobalStore } from "@/stores/global.store";
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { ChevronRight, MapPin, Search } from "lucide-react-native";

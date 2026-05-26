@@ -14,7 +14,7 @@ import {
   SPACE_48,
   whiteColor,
 } from "@/constants/theme";
-import { useToast } from "@/features/shared/hooks/useToast";
+import { useToast } from "@/hooks/useToast";
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
 import { router } from "expo-router";

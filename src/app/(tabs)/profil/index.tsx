@@ -21,7 +21,7 @@ import {
   whiteSecondaryColor,
   whiteTextStyle,
 } from "@/constants/theme";
-import { useConfirmStore } from "@/features/shared/store/confirm.store";
+import { useConfirmStore } from "@/stores/confirm.store";
 import AntDesignIC from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 import {

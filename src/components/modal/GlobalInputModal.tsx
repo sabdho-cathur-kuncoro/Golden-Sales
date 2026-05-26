@@ -9,7 +9,7 @@ import {
   whiteColor,
   whiteTextStyle,
 } from "@/constants/theme";
-import { useInputModalStore } from "@/features/shared/store/input.store";
+import { useInputModalStore } from "@/stores/input.store";
 import { useState } from "react";
 import {
   ActivityIndicator,

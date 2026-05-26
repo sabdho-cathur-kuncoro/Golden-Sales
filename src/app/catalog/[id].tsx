@@ -18,7 +18,7 @@ import {
   whiteColor,
   whiteTextStyle,
 } from "@/constants/theme";
-import useCatalog from "@/features/catalog/hooks/useCatalog";
+import useCatalog from "@/hooks/useCatalog";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {

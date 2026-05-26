@@ -1,6 +1,9 @@
-import { useToast } from "@/features/shared/hooks/useToast";
 import { useCallback, useState } from "react";
-import { getCategoriesProduct, getDetailsCategoryProduct } from "../services";
+import {
+  getCategoriesProduct,
+  getDetailsCategoryProduct,
+} from "../services/catalog.service";
+import { useToast } from "./useToast";
 
 const useCatalog = () => {
   const toast = useToast();
