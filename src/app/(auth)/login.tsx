@@ -18,12 +18,10 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
 
 const Login = () => {
-  const width = useWindowDimensions().width;
   return (
     <ImageBackground
       style={styles.page}
@@ -71,11 +69,14 @@ const Login = () => {
           <Gap height={16} />
           <FormPassword
             label="Password"
-            placeholder="********"
+            placeholderVisible="Masukkan password"
             placeholderTextColor={greyColor}
           />
           <Gap height={16} />
-          <TouchableOpacity activeOpacity={0.7}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.push("/(auth)/forgot-password")}
+          >
             <Text
               style={[
                 blueTextStyle,
