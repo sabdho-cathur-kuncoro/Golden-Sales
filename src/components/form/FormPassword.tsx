@@ -5,6 +5,7 @@ import {
   greyColor,
   greyTextStyle,
   redTextStyle,
+  whiteColor,
 } from "@/constants/theme";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
@@ -21,6 +22,8 @@ import { Gap } from "../ui";
 type Props = {
   label: string;
   error?: string;
+  bgColor?: string;
+  placeholderVisible?: string;
 } & TextInputProps;
 
 type eyeType = {
@@ -28,7 +31,13 @@ type eyeType = {
   pass: boolean;
 };
 
-export default function FormPassword({ label, error, ...props }: Props) {
+export default function FormPassword({
+  label,
+  error,
+  bgColor = whiteColor,
+  placeholderVisible,
+  ...props
+}: Props) {
   const [isVisiblePass, setIsVisiblePass] = useState<eyeType>({
     icon: "eye-off",
     pass: true,
@@ -44,10 +53,11 @@ export default function FormPassword({ label, error, ...props }: Props) {
     <View style={styles.container}>
       <Text style={[greyTextStyle, styles.label]}>{label}</Text>
       <Gap height={10} />
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, { backgroundColor: bgColor }]}>
         <TextInput
           style={[blackTextStyle, styles.input]}
           secureTextEntry={isVisiblePass.pass}
+          placeholder={isVisiblePass.pass ? "********" : placeholderVisible}
           {...props}
         />
         <TouchableOpacity
