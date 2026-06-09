@@ -18,7 +18,7 @@ import { formatDate } from "../../../utils/days";
 import AnimatedPressable from "./AnimatedPressable";
 import Gap from "./Gap";
 
-const TileNotif = React.memo(({ data, onPress }: any) => {
+async function TileNotif({ data, onPress }: any) {
   return (
     <AnimatedPressable onPress={onPress}>
       <View style={styles.cardContainer}>
@@ -78,7 +78,7 @@ const TileNotif = React.memo(({ data, onPress }: any) => {
       </View>
     </AnimatedPressable>
   );
-});
+}
 
 export default React.memo(TileNotif);
 

@@ -25,6 +25,7 @@ const StatusRow = ({ data, isLast }: any) => {
         {
           flexDirection: "row",
           marginBottom: SPACE_8,
+          minHeight: 40,
         },
       ]}
     >
@@ -110,7 +111,6 @@ export default StatusRow;
 const styles = StyleSheet.create({
   verticalLine: {
     width: 1,
-    minHeight: 24,
     flex: 1,
   },
   statusCircle: {

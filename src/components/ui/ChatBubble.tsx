@@ -12,7 +12,7 @@ import Gap from "./Gap";
 
 const current = "SLS-001";
 
-const ChatBubble = React.memo(({ data }: any) => {
+async function ChatBubble({ data }: any) {
   const account = data?.sender_id === current;
   if (data?.type === "day") {
     return (
@@ -39,7 +39,7 @@ const ChatBubble = React.memo(({ data }: any) => {
       </Text>
     </View>
   );
-});
+}
 
 export default React.memo(ChatBubble);
 

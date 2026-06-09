@@ -16,7 +16,7 @@ import { StyleSheet, Text, View } from "react-native";
 import AnimatedPressable from "./AnimatedPressable";
 import Gap from "./Gap";
 
-const TileChat = React.memo(({ data, onPress }: any) => {
+async function TileChat({ data, onPress }: any) {
   if (data?.type === "day") {
     return (
       <View style={styles.dayContainer}>
@@ -81,7 +81,7 @@ const TileChat = React.memo(({ data, onPress }: any) => {
       </View>
     </AnimatedPressable>
   );
-});
+}
 
 export default React.memo(TileChat);
 

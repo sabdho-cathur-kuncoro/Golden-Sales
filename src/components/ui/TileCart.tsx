@@ -23,156 +23,150 @@ import { currencyFormat } from "../../../utils/currencyFormat";
 import AnimatedPressable from "./AnimatedPressable";
 import Gap from "./Gap";
 
-const TileCart = React.memo(
-  ({ data, onSelect, onTapNote, onPressDelete, onPress }: any) => {
-    const isItemSelected = data?.isProductSelected;
-    const [qty, setQty] = useState(String(data?.qty) ?? "0");
+function TileCart({ data, onSelect, onTapNote, onPressDelete, onPress }: any) {
+  const isItemSelected = data?.isProductSelected;
+  const [qty, setQty] = useState(String(data?.qty) ?? "0");
 
-    // useEffect(() => {
-    //   setQty(data.qty ?? "0");
-    // }, [data.qty]);
+  // useEffect(() => {
+  //   setQty(data.qty ?? "0");
+  // }, [data.qty]);
 
-    return (
-      <Pressable onPress={onPress} style={styles.cardContainer}>
-        <View style={{ width: "9%" }}>
-          <AnimatedPressable onPress={onSelect}>
-            <View style={styles.radioContainer}>
-              {isItemSelected ? (
-                <View style={[styles.radioFillContainer]} />
-              ) : (
-                <></>
-              )}
-            </View>
-          </AnimatedPressable>
+  return (
+    <Pressable onPress={onPress} style={styles.cardContainer}>
+      <View style={{ width: "9%" }}>
+        <AnimatedPressable onPress={onSelect}>
+          <View style={styles.radioContainer}>
+            {isItemSelected ? (
+              <View style={[styles.radioFillContainer]} />
+            ) : (
+              <></>
+            )}
+          </View>
+        </AnimatedPressable>
+      </View>
+      <View style={{ width: "90%" }}>
+        {/* PRODUCT NAME & DELETE */}
+        <View style={[rowCenter]}>
+          <View style={{ width: "85%" }}>
+            <Text
+              style={[blackTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
+            >
+              {data?.name ?? "-"}
+            </Text>
+          </View>
+          <View
+            style={{
+              width: "14%",
+              alignItems: "flex-end",
+            }}
+          >
+            <AnimatedPressable onPress={onPressDelete}>
+              <Trash2 size={20} color={greyColor} />
+            </AnimatedPressable>
+          </View>
         </View>
-        <View style={{ width: "90%" }}>
-          {/* PRODUCT NAME & DELETE */}
-          <View style={[rowCenter]}>
-            <View style={{ width: "85%" }}>
+        <Gap height={SPACE_4} />
+        {/* PRRICE & QTY */}
+        <View style={[rowCenter]}>
+          <View style={{ width: "55%" }}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text
                 style={[
-                  blackTextStyle,
-                  { fontFamily: FontFamily.satoshiMedium },
+                  orangeTextStyle,
+                  { fontFamily: FontFamily.satoshiBold },
                 ]}
               >
-                {data?.name ?? "-"}
+                {currencyFormat(data?.discountPrice ?? data?.normalPrice ?? 0)}
               </Text>
-            </View>
-            <View
-              style={{
-                width: "14%",
-                alignItems: "flex-end",
-              }}
-            >
-              <AnimatedPressable onPress={onPressDelete}>
-                <Trash2 size={20} color={greyColor} />
-              </AnimatedPressable>
+              {data?.discountPrice ? (
+                <>
+                  <Gap width={SPACE_4} />
+                  <Text
+                    style={[
+                      blackTextStyle,
+                      {
+                        fontSize: 10,
+                        textDecorationLine: "line-through",
+                      },
+                    ]}
+                  >
+                    {currencyFormat(data?.normalPrice ?? 0)}
+                  </Text>
+                </>
+              ) : null}
             </View>
           </View>
-          <Gap height={SPACE_4} />
-          {/* PRRICE & QTY */}
-          <View style={[rowCenter]}>
-            <View style={{ width: "55%" }}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              width: "44%",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "flex-end",
+            }}
+          >
+            <AnimatedPressable>
+              <View style={styles.btn}>
                 <Text
                   style={[
-                    orangeTextStyle,
+                    greyTextStyle,
                     { fontFamily: FontFamily.satoshiBold },
                   ]}
                 >
-                  {currencyFormat(
-                    data?.discountPrice ?? data?.normalPrice ?? 0
-                  )}
+                  -
                 </Text>
-                {data?.discountPrice ? (
-                  <>
-                    <Gap width={SPACE_4} />
-                    <Text
-                      style={[
-                        blackTextStyle,
-                        {
-                          fontSize: 10,
-                          textDecorationLine: "line-through",
-                        },
-                      ]}
-                    >
-                      {currencyFormat(data?.normalPrice ?? 0)}
-                    </Text>
-                  </>
-                ) : null}
               </View>
-            </View>
-            <View
-              style={{
-                width: "44%",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-end",
-              }}
-            >
-              <AnimatedPressable>
-                <View style={styles.btn}>
-                  <Text
-                    style={[
-                      greyTextStyle,
-                      { fontFamily: FontFamily.satoshiBold },
-                    ]}
-                  >
-                    -
-                  </Text>
-                </View>
-              </AnimatedPressable>
-              <Gap width={SPACE_8} />
-              <TextInput
-                value={qty}
-                onChangeText={(text) => setQty(text)}
-                style={[
-                  blackTextStyle,
-                  {
-                    minWidth: "10%",
-                    fontFamily: FontFamily.satoshiBold,
-                  },
-                ]}
-              />
-              <Gap width={SPACE_8} />
-              <AnimatedPressable>
-                <View style={styles.btn}>
-                  <Text
-                    style={[
-                      greyTextStyle,
-                      { fontFamily: FontFamily.satoshiBold },
-                    ]}
-                  >
-                    +
-                  </Text>
-                </View>
-              </AnimatedPressable>
-            </View>
+            </AnimatedPressable>
+            <Gap width={SPACE_8} />
+            <TextInput
+              value={qty}
+              onChangeText={(text) => setQty(text)}
+              style={[
+                blackTextStyle,
+                {
+                  minWidth: "10%",
+                  fontFamily: FontFamily.satoshiBold,
+                },
+              ]}
+            />
+            <Gap width={SPACE_8} />
+            <AnimatedPressable>
+              <View style={styles.btn}>
+                <Text
+                  style={[
+                    greyTextStyle,
+                    { fontFamily: FontFamily.satoshiBold },
+                  ]}
+                >
+                  +
+                </Text>
+              </View>
+            </AnimatedPressable>
           </View>
-          <Gap height={10} />
-          {/* NOTE */}
-          <AnimatedPressable onPress={onTapNote}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-              }}
+        </View>
+        <Gap height={10} />
+        {/* NOTE */}
+        <AnimatedPressable onPress={onTapNote}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <EditIcon width={16} height={16} color={greyColor} />
+            <Gap width={4} />
+            <Text
+              style={[
+                greyTextStyle,
+                { fontSize: 10, fontFamily: FontFamily.satoshiMedium },
+              ]}
             >
-              <EditIcon width={16} height={16} color={greyColor} />
-              <Gap width={4} />
-              <Text
-                style={[
-                  greyTextStyle,
-                  { fontSize: 10, fontFamily: FontFamily.satoshiMedium },
-                ]}
-              >
-                Catatan Produk
-              </Text>
-            </View>
-          </AnimatedPressable>
-          {/* <Gap height={10} /> */}
-          {/* VOUCHER */}
-          {/* <AnimatedPressable>
+              Catatan Produk
+            </Text>
+          </View>
+        </AnimatedPressable>
+        {/* <Gap height={10} /> */}
+        {/* VOUCHER */}
+        {/* <AnimatedPressable>
             <View style={styles.rowVoc}>
               <VocIcon width={20} height={20} color={blueSecondaryColor} />
               <Gap width={10} />
@@ -222,11 +216,10 @@ const TileCart = React.memo(
               </View>
             </View>
           </AnimatedPressable> */}
-        </View>
-      </Pressable>
-    );
-  }
-);
+      </View>
+    </Pressable>
+  );
+}
 
 export default React.memo(TileCart);
 
