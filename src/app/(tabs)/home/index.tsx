@@ -93,7 +93,8 @@ const Home = () => {
         {/* INFO */}
         <View style={[paddingH]}>
           <View style={[styles.container]}>
-            <View
+            <Pressable
+              onPress={() => router.push("/approval")}
               style={[
                 styles.infoContentContainer,
                 rowCenter,
@@ -128,9 +129,10 @@ const Home = () => {
                   2
                 </Text>
               </View>
-            </View>
+            </Pressable>
             <Gap height={SPACE_16} />
-            <View
+            <Pressable
+              onPress={() => router.push("/transaksi")}
               style={[
                 styles.infoContentContainer,
                 rowCenter,
@@ -165,7 +167,7 @@ const Home = () => {
                   3
                 </Text>
               </View>
-            </View>
+            </Pressable>
           </View>
         </View>
         <Gap height={20} />
