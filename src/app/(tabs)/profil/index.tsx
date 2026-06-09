@@ -87,7 +87,7 @@ const Profile = () => {
       <View style={[styles.mainContainer]}>
         <ScrollView contentContainerStyle={[paddingScroll]}>
           {/* FAQ */}
-          <AnimatedPressable>
+          <AnimatedPressable onPress={() => router.push("/faq")}>
             <View style={[styles.cardContainer, rowCenter]}>
               <View
                 style={[
@@ -131,7 +131,7 @@ const Profile = () => {
             </View>
           </AnimatedPressable>
           {/* MANUAL BOOK */}
-          <AnimatedPressable>
+          <AnimatedPressable onPress={() => router.push("/manual-book")}>
             <View style={[styles.cardContainer, rowCenter]}>
               <View
                 style={[
@@ -171,7 +171,7 @@ const Profile = () => {
             </View>
           </AnimatedPressable>
           {/* CHANGE PASSWORD */}
-          <AnimatedPressable>
+          <AnimatedPressable onPress={() => router.push("/change-password")}>
             <View style={[styles.cardContainer, rowCenter]}>
               <View
                 style={[
@@ -211,7 +211,7 @@ const Profile = () => {
             </View>
           </AnimatedPressable>
           {/* PIN */}
-          <AnimatedPressable>
+          <AnimatedPressable onPress={() => router.push("/pin")}>
             <View style={[styles.cardContainer, rowCenter]}>
               <View
                 style={[
@@ -251,7 +251,9 @@ const Profile = () => {
             </View>
           </AnimatedPressable>
           {/* NOTIFICATION */}
-          <AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => router.push("/notification-preferences")}
+          >
             <View style={[styles.cardContainer, rowCenter]}>
               <View
                 style={[
