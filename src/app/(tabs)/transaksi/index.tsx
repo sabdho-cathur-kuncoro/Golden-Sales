@@ -1,6 +1,8 @@
 import CartIcon from "@/assets/icons/ic-cart.svg";
-import { AnimatedPressable, Gap, TileOrder } from "@/components/ui";
+import { AnimatedPressable, FilterSheet, Gap, TileOrder } from "@/components/ui";
+import type { FilterValue } from "@/components/ui";
 import { CategoryTransaksi, Order } from "@/constants/dummy";
+import { useBottomSheetStore } from "@/stores/bottomSheet.store";
 import {
   bgColor,
   blackColor,
@@ -9,6 +11,7 @@ import {
   FontFamily,
   greyColor,
   greyTertiaryColor,
+  greyTextStyle,
   primaryColor,
   screen,
   SPACE_16,
@@ -19,7 +22,7 @@ import {
 } from "@/constants/theme";
 import { router } from "expo-router";
 import { Bell, Filter, Search } from "lucide-react-native";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -32,6 +35,19 @@ import {
 } from "react-native";
 
 const Transaksi = () => {
+  const openSheet = useBottomSheetStore((s) => s.open);
+  const closeSheet = useBottomSheetStore((s) => s.close);
+
+  const [categories, setCategories] = useState(CategoryTransaksi);
+  const [filter, setFilter] = useState<FilterValue>({
+    payment: null,
+    start: null,
+    end: null,
+  });
+
+  const selectedStatus = categories.find((c) => c.isSelected)?.status;
+  const isFilterActive = !!(filter.payment || filter.start || filter.end);
+
   const keyExtractor = useCallback(
     (item: any, i: any) => `${i}-${item.id}`,
     []
@@ -50,7 +66,44 @@ const Transaksi = () => {
     );
   };
 
-  const onHandleCategory = (item: any) => {};
+  const onHandleCategory = (item: any) => {
+    setCategories((prev) =>
+      prev.map((c) => ({ ...c, isSelected: c.id === item.id }))
+    );
+  };
+
+  const transaksiData = Order.filter(
+    (d) =>
+      d.status_order === selectedStatus &&
+      (!filter.payment || d.payment_method === filter.payment) &&
+      (!filter.start || d.order_date >= filter.start) &&
+      (!filter.end || d.order_date <= filter.end)
+  );
+
+  const onOpenFilter = () => {
+    openSheet(
+      <FilterSheet
+        current={filter}
+        onApply={(value) => {
+          setFilter(value);
+          closeSheet();
+        }}
+        onReset={() => setFilter({ payment: null, start: null, end: null })}
+      />,
+      ["90%"],
+      <>
+        <Text style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
+          Filter Transaksi
+        </Text>
+        <Gap height={6} />
+        <Text style={[greyTextStyle, { fontSize: 12 }]}>
+          Saring berdasarkan pembayaran dan rentang tanggal
+        </Text>
+        <Gap height={8} />
+      </>
+    );
+  };
+
   return (
     <View style={[screen, { backgroundColor: whiteColor }]}>
       <StatusBar barStyle={"dark-content"} />
@@ -102,7 +155,7 @@ const Transaksi = () => {
             alignItems: "center",
           }}
         >
-          {CategoryTransaksi.map((item) => {
+          {categories.map((item) => {
             return (
               <Pressable
                 onPress={() => onHandleCategory(item)}
@@ -144,17 +197,25 @@ const Transaksi = () => {
             />
           </View>
           {/* FILTER */}
-          <View style={styles.filterContainer}>
+          <Pressable style={styles.filterContainer} onPress={onOpenFilter}>
             <Filter size={18} color={blackColor} />
             <Gap width={8} />
             <Text style={[blackTextStyle]}>Filter</Text>
-          </View>
+            {isFilterActive ? <View style={[dot, { marginLeft: 6 }]} /> : null}
+          </Pressable>
         </View>
         <FlatList
-          data={Order.filter((d) => d.status_order > 1 && d.status_order < 5)}
+          data={transaksiData}
           keyExtractor={keyExtractor}
           renderItem={renderItemFlatlist}
           contentContainerStyle={styles.flatlistContent}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={[greyTextStyle, { fontSize: 13 }]}>
+                Belum ada transaksi
+              </Text>
+            </View>
+          }
         />
       </View>
     </View>
@@ -215,5 +276,9 @@ const styles = StyleSheet.create({
   flatlistContent: {
     paddingTop: SPACE_16,
     paddingHorizontal: SPACE_16,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    paddingVertical: 48,
   },
 });
