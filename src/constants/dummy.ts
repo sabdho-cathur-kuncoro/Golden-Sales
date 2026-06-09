@@ -49,11 +49,13 @@ export const FlashSaleData = [
 export const CategoryApproval = [
   {
     id: 1,
+    key: "customer",
     name: "Dibuat Customer",
     isSelected: true,
   },
   {
     id: 2,
+    key: "sales",
     name: "Dibuat Sales",
     isSelected: false,
   },
@@ -62,16 +64,19 @@ export const CategoryApproval = [
 export const CategoryTransaksi = [
   {
     id: 1,
+    status: 2,
     name: "Diproses SO",
     isSelected: true,
   },
   {
     id: 2,
+    status: 3,
     name: "Disiapkan Gudang",
     isSelected: false,
   },
   {
     id: 3,
+    status: 4,
     name: "Dikirim",
     isSelected: false,
   },
@@ -80,6 +85,7 @@ export const CategoryTransaksi = [
 export const Order = [
   {
     id: "ORD-2026-001",
+    order_date: "2026-11-14",
     customer_name: "Toko Maju Jaya",
     branch: "Batam",
     qty: 50,
@@ -88,9 +94,11 @@ export const Order = [
     status_order: 2,
     created_at: "14 November 2026",
     subtotal: null,
+    created_by: "customer",
   },
   {
     id: "ORD-2026-002",
+    order_date: "2026-11-14",
     customer_name: "Toko Maju Jaya",
     branch: "Batam",
     qty: 50,
@@ -99,9 +107,11 @@ export const Order = [
     status_order: 3,
     created_at: "14 November 2026",
     subtotal: null,
+    created_by: "sales",
   },
   {
     id: "ORD-2026-003",
+    order_date: "2026-11-14",
     customer_name: "Toko Maju Jaya",
     branch: "Batam",
     qty: 50,
@@ -110,9 +120,11 @@ export const Order = [
     status_order: 4,
     created_at: "14 November 2026",
     subtotal: null,
+    created_by: "customer",
   },
   {
     id: "ORD-2026-004",
+    order_date: "2026-11-14",
     customer_name: "Toko Maju Jaya",
     branch: "Batam",
     qty: 50,
@@ -121,9 +133,11 @@ export const Order = [
     status_order: 1,
     created_at: "14 November 2026",
     subtotal: null,
+    created_by: "customer",
   },
   {
     id: "ORD-2026-005",
+    order_date: "2026-11-14",
     customer_name: "Toko Maju Jaya",
     branch: "Batam",
     qty: 50,
@@ -132,9 +146,11 @@ export const Order = [
     status_order: 1,
     created_at: "14 November 2026",
     subtotal: null,
+    created_by: "sales",
   },
   {
     id: "ORD-2026-006",
+    order_date: "2026-11-14",
     customer_name: "Toko Maju Jaya",
     branch: "Batam",
     qty: 50,
@@ -143,9 +159,11 @@ export const Order = [
     status_order: 5,
     created_at: "14 November 2026",
     subtotal: 1_800_000,
+    created_by: "sales",
   },
   {
     id: "ORD-2026-007",
+    order_date: "2026-11-14",
     customer_name: "Toko Maju Jaya",
     branch: "Batam",
     qty: 50,
@@ -154,6 +172,33 @@ export const Order = [
     status_order: 6,
     created_at: "14 November 2026",
     subtotal: 1_800_000,
+    created_by: "customer",
+  },
+  {
+    id: "ORD-2026-008",
+    order_date: "2026-11-15",
+    customer_name: "Toko Berkah Abadi",
+    branch: "Batam",
+    qty: 30,
+    payment_method: "Tunai",
+    status_order_name: "Diproses Sales",
+    status_order: 1,
+    created_at: "15 November 2026",
+    subtotal: null,
+    created_by: "customer",
+  },
+  {
+    id: "ORD-2026-009",
+    order_date: "2026-11-15",
+    customer_name: "Toko Sumber Rezeki",
+    branch: "Batam",
+    qty: 75,
+    payment_method: "Transfer Bank",
+    status_order_name: "Diproses Sales",
+    status_order: 1,
+    created_at: "15 November 2026",
+    subtotal: null,
+    created_by: "sales",
   },
 ];
 
