@@ -17,14 +17,18 @@ import { Gap } from "../ui";
 type Props = {
   label: string;
   error?: string;
+  bgColor?: string;
 } & TextInputProps;
 
-export default function FormInput({ label, error, ...props }: Props) {
+export default function FormInput({ label, error, bgColor, ...props }: Props) {
   return (
     <View style={styles.container}>
       <Text style={[greyTextStyle, styles.label]}>{label}</Text>
       <Gap height={10} />
-      <TextInput style={[blackTextStyle, styles.input]} {...props} />
+      <TextInput
+        style={[blackTextStyle, styles.input, { backgroundColor: bgColor }]}
+        {...props}
+      />
       {error && <Text style={[redTextStyle, styles.error]}>{error}</Text>}
     </View>
   );
