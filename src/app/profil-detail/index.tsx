@@ -77,7 +77,7 @@ const ProfilDetail = () => {
       >
         <View
           style={[
-            { width, height: height * 0.38, backgroundColor: primaryColor },
+            { width, minHeight: height * 0.42, backgroundColor: primaryColor },
           ]}
         >
           <View
@@ -131,36 +131,35 @@ const ProfilDetail = () => {
               <Text style={[whiteTextStyle]}>ACTIVE</Text>
             </View>
           </View>
-          <Gap height={SPACE_24} />
-          <View style={[rowCenter, paddingH]}>
-            <View style={[shadow, styles.cardAchieve]}>
-              <Text style={[greyTextStyle, { fontSize: 16 }]}>MTD REVENUE</Text>
-              <Text style={[blackTextStyle, { fontSize: 16 }]}>
-                {currencyFormat(250_000_000)}
-              </Text>
-              <Gap height={SPACE_8} />
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <TrendingUp size={14} color={greenColor} />
-                <Gap width={SPACE_4} />
-                <Text style={[greenTextStyle, { fontSize: 16 }]}>+12%</Text>
-              </View>
+        </View>
+        <View style={[rowCenter, paddingH, { marginTop: -40 }]}>
+          <View style={[shadow, styles.cardAchieve]}>
+            <Text style={[greyTextStyle, { fontSize: 16 }]}>MTD REVENUE</Text>
+            <Text style={[blackTextStyle, { fontSize: 16 }]}>
+              {currencyFormat(250_000_000)}
+            </Text>
+            <Gap height={SPACE_8} />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <TrendingUp size={14} color={greenColor} />
+              <Gap width={SPACE_4} />
+              <Text style={[greenTextStyle, { fontSize: 16 }]}>+12%</Text>
             </View>
-            <View style={[shadow, styles.cardAchieve]}>
-              <Text style={[greyTextStyle, { fontSize: 16 }]}>ACHIEVEMENT</Text>
-              <Text style={[primaryTextStyle, { fontSize: 16 }]}>85%</Text>
-              <Gap height={6} />
-              <View style={styles.achievementBarContainer}>
-                <View style={styles.achievementBarFill} />
-              </View>
+          </View>
+          <View style={[shadow, styles.cardAchieve]}>
+            <Text style={[greyTextStyle, { fontSize: 16 }]}>ACHIEVEMENT</Text>
+            <Text style={[primaryTextStyle, { fontSize: 16 }]}>85%</Text>
+            <Gap height={6} />
+            <View style={styles.achievementBarContainer}>
+              <View style={styles.achievementBarFill} />
             </View>
           </View>
         </View>
-        <Gap height={72} />
+        <Gap height={SPACE_24} />
         <View style={[paddingH]}>
           {/* REGION */}
           <View style={[shadow, styles.cardContainer]}>
