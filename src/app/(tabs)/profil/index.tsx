@@ -3,6 +3,7 @@ import {
   bgColor,
   blackTextStyle,
   blueColor,
+  darkPrimaryColor,
   FontFamily,
   greenColor,
   greyColor,
@@ -21,28 +22,19 @@ import {
   whiteSecondaryColor,
   whiteTextStyle,
 } from "@/constants/theme";
+import { useAuthStore } from "@/stores/auth.store";
 import { useConfirmStore } from "@/stores/confirm.store";
 import AntDesignIC from "@expo/vector-icons/AntDesign";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import {
-  BookOpen,
-  ChevronRight,
-  Fingerprint,
-  Lock,
-  LogOut,
-  Smartphone,
-} from "lucide-react-native";
+import { BookOpen, ChevronRight, Lock, LogOut } from "lucide-react-native";
 import React from "react";
-import {
-  Pressable,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
+import { getInitials } from "../../../../utils/helper";
 
 const Profile = () => {
+  const { user } = useAuthStore();
   const { show } = useConfirmStore();
   const handleLogout = () => {
     show({
@@ -50,39 +42,80 @@ const Profile = () => {
       message: "Yakin ingin keluar akun ini?",
       type: "danger",
       onConfirm: async () => {
-        // await deleteItem();
-        console.log("LOGOUT");
+        useAuthStore.getState().logout();
+        router.replace("/(auth)/login");
       },
     });
   };
   return (
-    <View style={[screen, { backgroundColor: primaryColor }]}>
+    <LinearGradient
+      colors={[darkPrimaryColor, primaryColor]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.7, y: 1 }}
+      style={[screen]}
+    >
       <StatusBar barStyle={"light-content"} />
-      <View style={styles.topContent}>
-        <View
-          style={{ width: "85%", flexDirection: "row", alignItems: "center" }}
-        >
-          <View style={styles.imageProfile} />
-          <Gap width={SPACE_16} />
-          <View>
-            <Text
-              style={[
-                whiteTextStyle,
-                { fontSize: 16, fontFamily: FontFamily.satoshiBold },
-              ]}
+      <View style={[styles.topContent]}>
+        <AnimatedPressable onPress={() => router.push("/profil-detail")}>
+          <View style={[rowCenter]}>
+            <View
+              style={{
+                width: "85%",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
             >
-              Dudung Sadudung
-            </Text>
-            <Gap height={SPACE_4} />
-            <Text style={[whiteTextStyle, { fontSize: 16 }]}>SLS-99281</Text>
+              {user?.avatar ? (
+                <View style={[styles.imageProfile]}>
+                  <Image
+                    source={{
+                      uri: `data:image/jpeg;base64,${user?.avatar}`,
+                    }}
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                </View>
+              ) : (
+                <View
+                  style={[
+                    styles.imageProfile,
+                    {
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: greenColor,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      whiteTextStyle,
+                      { fontSize: 24, fontFamily: FontFamily.satoshiBold },
+                    ]}
+                  >
+                    {getInitials(user?.fullName ?? "")}
+                  </Text>
+                </View>
+              )}
+              <Gap width={SPACE_16} />
+              <View>
+                <Text
+                  style={[
+                    whiteTextStyle,
+                    { fontSize: 16, fontFamily: FontFamily.satoshiBold },
+                  ]}
+                >
+                  {user?.fullName ?? "-"}
+                </Text>
+                <Gap height={SPACE_4} />
+                <Text style={[whiteTextStyle, { fontSize: 16 }]}>
+                  {user?.role ?? "-"}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.chevronRightContainer}>
+              <ChevronRight size={28} color={whiteColor} />
+            </View>
           </View>
-        </View>
-        <Pressable
-          onPress={() => router.push("/profil-detail")}
-          style={styles.chevronRightContainer}
-        >
-          <ChevronRight size={28} color={whiteColor} />
-        </Pressable>
+        </AnimatedPressable>
       </View>
       <View style={[styles.mainContainer]}>
         <ScrollView contentContainerStyle={[paddingScroll]}>
@@ -116,7 +149,7 @@ const Profile = () => {
                     FAQ
                   </Text>
                   <Text style={[greyTextStyle, { fontSize: 12 }]}>
-                    Frequently Ask Question
+                    Pertanyaan yang Sering Diajukan
                   </Text>
                 </View>
               </View>
@@ -153,10 +186,10 @@ const Profile = () => {
                       { fontFamily: FontFamily.satoshiBold },
                     ]}
                   >
-                    Manual Book
+                    Buku Panduan
                   </Text>
                   <Text style={[greyTextStyle, { fontSize: 12 }]}>
-                    Comprehensive User Guide (PDF)
+                    Panduan Pengguna Lengkap (PDF)
                   </Text>
                 </View>
               </View>
@@ -193,10 +226,10 @@ const Profile = () => {
                       { fontFamily: FontFamily.satoshiBold },
                     ]}
                   >
-                    Change Password
+                    Ubah Kata Sandi
                   </Text>
                   <Text style={[greyTextStyle, { fontSize: 12 }]}>
-                    Update your login password
+                    Perbarui kata sandi login Anda
                   </Text>
                 </View>
               </View>
@@ -211,7 +244,7 @@ const Profile = () => {
             </View>
           </AnimatedPressable>
           {/* PIN */}
-          <AnimatedPressable onPress={() => router.push("/pin")}>
+          {/* <AnimatedPressable onPress={() => router.push("/pin")}>
             <View style={[styles.cardContainer, rowCenter]}>
               <View
                 style={[
@@ -249,9 +282,9 @@ const Profile = () => {
                 <ChevronRight size={18} color={greyColor} />
               </View>
             </View>
-          </AnimatedPressable>
+          </AnimatedPressable> */}
           {/* NOTIFICATION */}
-          <AnimatedPressable
+          {/* <AnimatedPressable
             onPress={() => router.push("/notification-preferences")}
           >
             <View style={[styles.cardContainer, rowCenter]}>
@@ -291,7 +324,7 @@ const Profile = () => {
                 <ChevronRight size={18} color={greyColor} />
               </View>
             </View>
-          </AnimatedPressable>
+          </AnimatedPressable> */}
           {/* LOGOUT */}
           <AnimatedPressable onPress={handleLogout}>
             <View style={[styles.cardContainer, rowCenter]}>
@@ -315,10 +348,10 @@ const Profile = () => {
                       { fontFamily: FontFamily.satoshiBold },
                     ]}
                   >
-                    Logout
+                    Keluar
                   </Text>
                   <Text style={[greyTextStyle, { fontSize: 12 }]}>
-                    Safely logout from session
+                    Keluar dari sesi dengan aman
                   </Text>
                 </View>
               </View>
@@ -334,7 +367,7 @@ const Profile = () => {
           </AnimatedPressable>
         </ScrollView>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -349,7 +382,6 @@ const styles = StyleSheet.create({
   },
   topContent: {
     flex: 0.15,
-    backgroundColor: primaryColor,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: SPACE_16,
@@ -357,7 +389,7 @@ const styles = StyleSheet.create({
   imageProfile: {
     width: 60,
     height: 60,
-    borderRadius: 60,
+    borderRadius: 60 / 2,
     backgroundColor: whiteSecondaryColor,
   },
   chevronRightContainer: {
