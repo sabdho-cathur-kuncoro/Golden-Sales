@@ -1,296 +1,268 @@
-import { Accordion, Gap, Header } from "@/components/ui";
+import { AnimatedPressable, FocusAwareStatusBar, Gap } from "@/components/ui";
 import {
   bgColor,
   blackTextStyle,
-  borderInputColor,
-  darkBlueColor,
+  darkPrimaryColor,
   FontFamily,
   greyColor,
   greyTextStyle,
-  mainContent,
+  lineColor,
+  orangeColor,
   primaryColor,
+  redColor,
   screen,
+  SPACE_16,
   whiteColor,
   whiteTextStyle,
 } from "@/constants/theme";
+import { useToast } from "@/hooks/useToast";
+import { getSalesManualService } from "@/services/sale.services";
+import * as LegacyFS from "expo-file-system/legacy";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import * as Sharing from "expo-sharing";
 import {
-  BookOpenText,
-  ClipboardCheck,
+  AlertTriangle,
+  ChevronLeft,
+  Download,
   FileText,
-  LayoutGrid,
-  Package,
-  Search,
-  ShoppingCart,
-  X,
 } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  LayoutAnimation,
+  ActivityIndicator,
   Platform,
-  Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  UIManager,
   View,
 } from "react-native";
+import Pdf from "react-native-pdf";
 
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
-const ManualData = [
-  {
-    id: 1,
-    icon: Package,
-    title: "Cara Meminta Barang ke Gudang",
-    steps: [
-      "Buka menu Minta Barang.",
-      "Pilih kategori barang yang dibutuhkan.",
-      "Pilih barang dan tentukan jumlah yang diminta.",
-      "Lengkapi rincian permintaan lalu kirim ke gudang.",
-    ],
-  },
-  {
-    id: 2,
-    icon: ShoppingCart,
-    title: "Cara Membuat Pesanan untuk Pelanggan (Canvassing)",
-    steps: [
-      "Buka menu Order, lalu pilih outlet/pelanggan dan alamat pengiriman.",
-      "Pilih produk yang ingin dipesan beserta jumlahnya.",
-      "Periksa rincian pesanan pada halaman Rincian.",
-      "Pilih metode pembayaran lalu lanjutkan ke halaman pembayaran.",
-      "Selesaikan pesanan hingga muncul status berhasil dibuat.",
-    ],
-  },
-  {
-    id: 3,
-    icon: FileText,
-    title: "Cara Melihat Laporan Pesanan",
-    steps: [
-      "Buka menu Transaksi untuk melihat seluruh riwayat pesanan apapun statusnya.",
-      "Buka menu Laporan untuk melihat khusus pesanan yang sudah selesai atau ditolak.",
-      "Ketuk salah satu pesanan untuk melihat detail lengkapnya.",
-    ],
-  },
-  {
-    id: 4,
-    icon: LayoutGrid,
-    title: "Cara Melihat Katalog Produk",
-    steps: [
-      "Buka menu Katalog dari beranda.",
-      "Telusuri daftar produk yang tersedia.",
-      "Ketuk salah satu produk untuk melihat detail dan informasinya.",
-    ],
-  },
-  {
-    id: 5,
-    icon: ClipboardCheck,
-    title: "Cara Melakukan Approval Pesanan Pelanggan",
-    steps: [
-      "Buka menu Approval untuk melihat daftar pesanan yang menunggu persetujuan.",
-      "Ketuk salah satu pesanan untuk membuka halaman detail approval.",
-      "Periksa setiap tahapan pada alur persetujuan.",
-      "Setujui pesanan, atau tolak dengan menyertakan alasan penolakan.",
-    ],
-  },
-];
-
+// Buku Manual viewer (Sales) — renders the PDF in-app via react-native-pdf.
+// Source: GET /manual → { base64, contentType, fileName, title?, snippet? }.
 const ManualBook = () => {
-  const [openId, setOpenId] = useState<number | null>(null);
-  const [query, setQuery] = useState("");
+  const toast = useToast();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [manual, setManual] = useState<any>(null);
+  const [downloading, setDownloading] = useState(false);
 
-  const toggleItem = (id: number) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setOpenId((prev) => (prev === id ? null : id));
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await getSalesManualService();
+        if (!active) return;
+        setManual(data);
+        if (!data?.base64) {
+          setError(
+            "File manual ada tapi belum di-encode base64. Hubungi admin."
+          );
+        }
+      } catch (err) {
+        if (__DEV__) console.log(err);
+        if (active) {
+          setError(String(err instanceof Error ? err.message : err));
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleDownload = async () => {
+    if (!manual?.base64 || downloading) return;
+    setDownloading(true);
+    try {
+      const fileName = manual.fileName || "buku-manual-sales.pdf";
+      const mime = manual.contentType || "application/pdf";
+
+      if (Platform.OS === "android") {
+        // Storage Access Framework — save straight to a user-picked folder.
+        const perm =
+          await LegacyFS.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (perm.granted) {
+          const dest = await LegacyFS.StorageAccessFramework.createFileAsync(
+            perm.directoryUri,
+            fileName,
+            mime
+          );
+          await LegacyFS.writeAsStringAsync(dest, manual.base64, {
+            encoding: LegacyFS.EncodingType.Base64,
+          });
+          toast.success("Tersimpan", "Buku manual tersimpan ke perangkat.");
+          return;
+        }
+        // permission denied → fall through to share sheet
+      }
+
+      const uri = LegacyFS.cacheDirectory + fileName;
+      await LegacyFS.writeAsStringAsync(uri, manual.base64, {
+        encoding: LegacyFS.EncodingType.Base64,
+      });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: mime,
+          UTI: "com.adobe.pdf",
+          dialogTitle: fileName,
+        });
+      } else {
+        toast.info("File siap", fileName);
+      }
+    } catch (err) {
+      toast.error("Gagal", String(err instanceof Error ? err.message : err));
+    } finally {
+      setDownloading(false);
+    }
   };
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return ManualData;
-    return ManualData.filter(
-      (item) =>
-        item.title.toLowerCase().includes(q) ||
-        item.steps.some((s) => s.toLowerCase().includes(q))
-    );
-  }, [query]);
-
   return (
-    <View style={[screen, { backgroundColor: bgColor }]}>
-      <Header title={"Buku Manual"} onBack={() => router.back()} />
-      <View style={[mainContent]}>
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* HERO */}
-          <LinearGradient
-            colors={[primaryColor, darkBlueColor]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.hero}
+    <LinearGradient
+      colors={[darkPrimaryColor, primaryColor]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.7, y: 1 }}
+      style={[screen]}
+    >
+      <FocusAwareStatusBar barStyle={"light-content"} />
+      {/* HEADER */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <AnimatedPressable onPress={() => router.back()}>
+            <ChevronLeft size={24} color={whiteColor} />
+          </AnimatedPressable>
+          <Gap width={SPACE_16} />
+          <Text
+            style={[whiteTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
           >
-            <View style={styles.heroIcon}>
-              <BookOpenText size={26} color={whiteColor} />
+            Buku Manual
+          </Text>
+        </View>
+        {manual?.base64 ? (
+          <AnimatedPressable onPress={handleDownload} disabled={downloading}>
+            <View style={styles.iconBtn}>
+              {downloading ? (
+                <ActivityIndicator size="small" color={whiteColor} />
+              ) : (
+                <Download size={20} color={whiteColor} />
+              )}
             </View>
-            <Gap height={12} />
-            <Text style={[whiteTextStyle, styles.heroTitle]}>
-              Panduan Penggunaan
-            </Text>
-            <Gap height={4} />
-            <Text style={[whiteTextStyle, styles.heroSubtitle]}>
-              Pelajari langkah demi langkah cara menggunakan aplikasi
-            </Text>
-          </LinearGradient>
+          </AnimatedPressable>
+        ) : null}
+      </View>
 
-          {/* SEARCH */}
-          <View style={styles.searchBar}>
-            <Search size={18} color={greyColor} />
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder="Cari panduan..."
-              placeholderTextColor={greyColor}
-              style={styles.searchInput}
-              returnKeyType="search"
-            />
-            {query.length > 0 ? (
-              <Pressable onPress={() => setQuery("")} hitSlop={8}>
-                <X size={18} color={greyColor} />
-              </Pressable>
+      <View style={styles.mainContent}>
+        {/* META BAR */}
+        {manual?.title ? (
+          <View style={styles.metaBar}>
+            <Text style={styles.metaTitle}>{manual.title}</Text>
+            {manual.snippet ? (
+              <Text style={styles.metaSnippet}>{manual.snippet}</Text>
             ) : null}
           </View>
+        ) : null}
 
-          <Gap height={16} />
-
-          {/* LIST */}
-          {filtered.length > 0 ? (
-            filtered.map((item) => (
-              <Accordion
-                key={item.id}
-                icon={item.icon}
-                title={item.title}
-                isOpen={openId === item.id}
-                onToggle={() => toggleItem(item.id)}
-              >
-                {item.steps.map((step, i) => (
-                  <View key={i} style={styles.stepRow}>
-                    <View style={styles.stepBadge}>
-                      <Text style={styles.stepNumber}>{i + 1}</Text>
-                    </View>
-                    <Text style={[greyTextStyle, styles.stepText]}>{step}</Text>
-                  </View>
-                ))}
-              </Accordion>
-            ))
-          ) : (
-            <View style={styles.empty}>
-              <Search size={32} color={greyColor} />
-              <Gap height={12} />
-              <Text style={[blackTextStyle, styles.emptyTitle]}>
-                Tidak ditemukan
-              </Text>
-              <Text style={[greyTextStyle, styles.emptyText]}>
-                Coba kata kunci lain untuk menemukan panduan
-              </Text>
-            </View>
-          )}
-        </ScrollView>
+        {loading ? (
+          <View style={styles.center}>
+            <FileText size={40} color={greyColor} />
+            <Gap height={8} />
+            <Text style={styles.muted}>Memuat manual…</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.center}>
+            <AlertTriangle size={40} color={orangeColor} />
+            <Gap height={8} />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : manual?.base64 ? (
+          <Pdf
+            source={{
+              uri: `data:application/pdf;base64,${manual.base64}`,
+              cache: true,
+            }}
+            style={styles.pdf}
+            onError={(err) =>
+              setError(String(err instanceof Error ? err.message : err))
+            }
+            renderActivityIndicator={() => (
+              <ActivityIndicator color={primaryColor} />
+            )}
+          />
+        ) : null}
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
 export default ManualBook;
 
 const styles = StyleSheet.create({
-  scroll: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 120,
+  header: {
+    flexDirection: "row",
+    minHeight: 40,
+    paddingHorizontal: SPACE_16,
+    paddingVertical: SPACE_16,
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  hero: {
-    borderRadius: 16,
-    padding: 20,
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
   },
-  heroIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.18)",
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.12)",
     alignItems: "center",
     justifyContent: "center",
   },
-  heroTitle: {
-    fontFamily: FontFamily.satoshiBold,
-    fontSize: 20,
+  mainContent: {
+    flex: 1,
+    backgroundColor: bgColor,
+    borderTopStartRadius: 20,
+    borderTopEndRadius: 20,
+    overflow: "hidden",
   },
-  heroSubtitle: {
-    fontSize: 13,
-    opacity: 0.85,
-    lineHeight: 18,
-  },
-  searchBar: {
-    marginTop: 16,
-    flexDirection: "row",
-    alignItems: "center",
+  metaBar: {
     backgroundColor: whiteColor,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: borderInputColor,
-    paddingHorizontal: 14,
-    height: 48,
+    paddingHorizontal: SPACE_16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: lineColor,
   },
-  searchInput: {
-    flex: 1,
-    marginHorizontal: 10,
-    fontFamily: FontFamily.satoshiRegular,
-    fontSize: 14,
+  metaTitle: {
     color: blackTextStyle.color,
-    padding: 0,
+    fontSize: 14,
+    fontFamily: FontFamily.satoshiBold,
   },
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 14,
+  metaSnippet: {
+    color: greyTextStyle.color,
+    fontSize: 11,
+    marginTop: 2,
   },
-  stepBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: primaryColor,
+  pdf: {
+    flex: 1,
+    width: "100%",
+    backgroundColor: "#525659",
+  },
+  center: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
-    marginTop: 1,
+    paddingHorizontal: SPACE_16,
   },
-  stepNumber: {
-    fontFamily: FontFamily.satoshiBold,
-    fontSize: 12,
-    color: whiteColor,
+  muted: {
+    color: greyColor,
+    fontSize: 14,
   },
-  stepText: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  empty: {
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  emptyTitle: {
-    fontFamily: FontFamily.satoshiBold,
-    fontSize: 15,
-  },
-  emptyText: {
-    fontSize: 13,
+  errorText: {
+    color: redColor,
+    fontSize: 14,
     textAlign: "center",
-    marginTop: 4,
   },
 });
