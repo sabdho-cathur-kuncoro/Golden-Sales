@@ -1,137 +1,142 @@
-import { Gap, Header, TileOrder } from "@/components/ui";
-import { CategoryReportData, Order } from "@/constants/dummy";
+import CartIcon from "@/assets/icons/ic-cart.svg";
+import { AnimatedPressable, FocusAwareStatusBar, Gap } from "@/components/ui";
 import {
   bgColor,
-  blackColor,
+  bgSecondaryColor,
   blackTextStyle,
+  darkPrimaryColor,
+  dot,
   FontFamily,
-  greyColor,
-  greyTertiaryColor,
+  greyTextStyle,
+  lineColor,
   primaryColor,
   screen,
   SPACE_16,
   whiteColor,
   whiteTextStyle,
 } from "@/constants/theme";
-import { router } from "expo-router";
-import { Filter, Search } from "lucide-react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import { selectCartCount, useCartStore } from "@/stores/cart.store";
 import {
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+  selectNotifUnread,
+  useNotificationStore,
+} from "@/stores/notification.store";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import {
+  Bell,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  LucideIcon,
+  Receipt,
+} from "lucide-react-native";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+
+type MenuItem = {
+  key: string;
+  title: string;
+  subtitle: string;
+  Icon: LucideIcon;
+  onPress: () => void;
+};
+
+const MENU: MenuItem[] = [
+  {
+    key: "penjualan",
+    title: "Penjualan",
+    subtitle: "Riwayat penjualan stok saya",
+    Icon: Receipt,
+    onPress: () => router.push("/report/penjualan"),
+  },
+  {
+    key: "permintaan",
+    title: "Permintaan",
+    subtitle: "Order selesai & dibatalkan",
+    Icon: ClipboardList,
+    onPress: () => router.push("/report/permintaan"),
+  },
+];
 
 const Report = () => {
-  const [orderData, setOrderData] = useState<any>([]);
-  const [selectedStatus, setSelectedStatus] = useState(null);
-
-  useEffect(() => {
-    getOrderList();
-  }, []);
-
-  async function getOrderList() {
-    try {
-      const dataView = Order.filter((d) => d.status_order > 4);
-      setOrderData(dataView);
-    } catch (err) {
-      if (__DEV__) {
-        console.log(err);
-      }
-    }
-  }
-
-  const keyExtractor = useCallback(
-    (item: any, i: any) => `${i}-${item.id}`,
-    []
-  );
-  const renderItemFlatlist = ({ item }: any) => {
-    return (
-      <TileOrder
-        item={item}
-        isReport={true}
-        onPress={() =>
-          router.push({
-            pathname: "/report/[id]",
-            params: { id: item.id, statusOrder: item?.status_order },
-          })
-        }
-      />
-    );
-  };
+  const cartCount = useCartStore(selectCartCount);
+  const notifCount = useNotificationStore(selectNotifUnread);
   return (
-    <View style={[screen, { backgroundColor: whiteColor }]}>
-      <Header
-        title={"Laporan"}
-        isIconVisible
-        isNotifVisible
-        onBack={() => router.back()}
-      />
-      <View style={[styles.header]}>
-        {/* CATEGORY */}
-        <ScrollView
-          horizontal
-          contentContainerStyle={{ paddingLeft: SPACE_16 }}
-        >
-          {CategoryReportData.map((data: any) => {
-            const isSelected = data?.is_selected;
-            return (
-              <View
-                key={data.id}
-                style={[
-                  styles.categoryContainer,
-                  {
-                    backgroundColor: isSelected
-                      ? primaryColor
-                      : greyTertiaryColor,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    isSelected ? whiteTextStyle : blackTextStyle,
-                    { fontSize: 12, fontFamily: FontFamily.satoshiMedium },
-                  ]}
-                >
-                  {data?.name}
+    <LinearGradient
+      colors={[darkPrimaryColor, primaryColor]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.7, y: 1 }}
+      style={[screen]}
+    >
+      <FocusAwareStatusBar barStyle={"light-content"} />
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <AnimatedPressable onPress={() => router.back()}>
+            <ChevronLeft size={24} color={whiteColor} />
+          </AnimatedPressable>
+          <Gap width={SPACE_16} />
+          <Text
+            style={[whiteTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
+          >
+            Laporan
+          </Text>
+        </View>
+        <View style={styles.headerRight}>
+          <AnimatedPressable onPress={() => router.push("/notifikasi")}>
+            {notifCount > 0 ? (
+              <View style={styles.cartDot}>
+                <Text style={[whiteTextStyle, { fontSize: 8 }]}>
+                  {notifCount > 99 ? "99+" : notifCount}
                 </Text>
               </View>
-            );
-          })}
-        </ScrollView>
-      </View>
-      <View style={{ flex: 1, backgroundColor: bgColor }}>
-        {/* TOP CONTENT */}
-        <View style={styles.topContent}>
-          {/* SEARCH */}
-          <View style={styles.searchContainer}>
-            <View style={{ width: "10%" }}>
-              <Search size={18} color={blackColor} />
+            ) : null}
+            <View style={styles.iconContainer}>
+              <Bell size={22} color={whiteColor} />
             </View>
-            <TextInput
-              placeholder="Cari customer"
-              placeholderTextColor={greyColor}
-              style={[blackTextStyle, { width: "88%" }]}
-            />
-          </View>
-          {/* FILTER */}
-          <View style={styles.filterContainer}>
-            <Filter size={18} color={blackColor} />
-            <Gap width={8} />
-            <Text style={[blackTextStyle]}>Filter</Text>
-          </View>
+          </AnimatedPressable>
+          <Gap width={20} />
+          <AnimatedPressable onPress={() => router.push("/cart")}>
+            {cartCount > 0 ? (
+              <View style={styles.cartDot}>
+                <Text style={[whiteTextStyle, { fontSize: 8 }]}>
+                  {cartCount > 99 ? "99+" : cartCount}
+                </Text>
+              </View>
+            ) : null}
+            <View style={styles.iconContainer}>
+              <CartIcon width={22} height={22} color={whiteColor} />
+            </View>
+          </AnimatedPressable>
         </View>
-        <FlatList
-          data={orderData}
-          keyExtractor={keyExtractor}
-          renderItem={renderItemFlatlist}
-          contentContainerStyle={styles.flatlistContent}
-        />
       </View>
-    </View>
+      <View style={styles.mainContent}>
+        {MENU.map((item) => (
+          <AnimatedPressable key={item.key} onPress={item.onPress}>
+            <View style={styles.card}>
+              <View style={styles.iconCardContainer}>
+                <item.Icon size={24} color={primaryColor} />
+              </View>
+              <Gap width={SPACE_16} />
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={[
+                    blackTextStyle,
+                    { fontSize: 15, fontFamily: FontFamily.satoshiBold },
+                  ]}
+                >
+                  {item.title}
+                </Text>
+                <Gap height={2} />
+                <Text style={[greyTextStyle, { fontSize: 12 }]}>
+                  {item.subtitle}
+                </Text>
+              </View>
+              <ChevronRight size={20} color={greyTextStyle.color as string} />
+            </View>
+          </AnimatedPressable>
+        ))}
+      </View>
+    </LinearGradient>
   );
 };
 
@@ -139,48 +144,68 @@ export default Report;
 
 const styles = StyleSheet.create({
   header: {
-    width: "100%",
-    minHeight: 40,
-    backgroundColor: whiteColor,
-    paddingVertical: SPACE_16,
-  },
-  topContent: {
-    width: "100%",
-    paddingTop: SPACE_16,
-    paddingHorizontal: SPACE_16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-  },
-  searchContainer: {
-    width: "75%",
-    height: 40,
-    backgroundColor: whiteColor,
-    borderRadius: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filterContainer: {
-    width: "22%",
-    backgroundColor: whiteColor,
-    borderRadius: 10,
-    height: 40,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  flatlistContent: {
-    paddingTop: SPACE_16,
     paddingHorizontal: SPACE_16,
+    paddingVertical: SPACE_16,
+    minHeight: 40,
   },
-  categoryContainer: {
-    minWidth: 64,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 44,
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  mainContent: {
+    flex: 1,
+    backgroundColor: bgColor,
+    borderTopStartRadius: 20,
+    borderTopEndRadius: 20,
+    paddingHorizontal: SPACE_16,
+    paddingTop: SPACE_16,
+    paddingBottom: 120,
+  },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: whiteColor,
+    borderRadius: 16,
+    padding: SPACE_16,
+    borderWidth: 1,
+    borderColor: lineColor,
+    marginBottom: 12,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.12)",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+  },
+  iconCardContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: bgSecondaryColor,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cartDot: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 3,
+    backgroundColor: primaryColor,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 99,
   },
 });
