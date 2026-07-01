@@ -62,13 +62,15 @@ export const SPACE_32 = 32;
 export const SPACE_48 = 48;
 export const SPACE_64 = 64;
 
-export const primaryColor = "#1C0867";
+export const primaryColor = "#B20605";
+export const darkPrimaryColor = "#270000";
 export const secondaryColor = "#B0A8BA";
 export const bgColor = "#F2F3F5";
-export const bgSecondaryColor = "#F4F1FE";
+export const bgSecondaryColor = "#FAF0F0";
 export const bgTertiaryColor = "#F0ECFE";
+export const bgBrownColor = "#F5F3F3";
 export const blackColor = "#202020";
-export const blackRBGAColor = "rgba(0,0,0,0.2)";
+export const blackRGBAColor = "rgba(0,0,0,0.2)";
 export const whiteColor = "#FFFFFF";
 export const whiteSecondaryColor = "#EEEEEE";
 export const whiteThirdColor = "#F6F7F8";
@@ -76,6 +78,7 @@ export const greyColor = "#6C7278";
 export const greySecondaryColor = "#606060";
 export const greyTertiaryColor = "#E6E6E6";
 export const yellowColor = "#FFB34A";
+export const yellowRGBAColor = "rgba(255, 179, 74, 0.1)";
 export const yellowSecondaryColor = "#FFD499";
 export const darkBlueColor = "#0D042F";
 export const darkBlueRGBAColor = "#F7F6FE";
@@ -183,6 +186,23 @@ export const screen = {
   paddingTop: 48,
 };
 
+// softer than `shadow` (opacity .34 / elevation 10) — right for stacked cards
+export const softShadow = {
+  shadowColor: blackColor,
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.06,
+  shadowRadius: 8,
+  elevation: 2,
+};
+
+export const card = {
+  backgroundColor: whiteColor,
+  borderRadius: 12,
+  padding: SPACE_16,
+  borderWidth: 1,
+  borderColor: borderInputColor, // hairline so cards read on grey bg
+};
+
 export const footerStyle = {
   position: "absolute",
   bottom: 0,
@@ -197,6 +217,11 @@ export const rowCenter = {
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "space-between",
+} as const;
+
+export const row = {
+  flexDirection: "row",
+  alignItems: "center",
 } as const;
 
 export const paddingH = {

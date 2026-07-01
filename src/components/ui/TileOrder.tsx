@@ -1,11 +1,12 @@
 import {
   blackColor,
-  blackRBGAColor,
+  blackRGBAColor,
   blackTextStyle,
   blueColor,
   blueRGBAColor,
   blueTextStyle,
   FontFamily,
+  greenColor,
   greenSecondaryColor,
   greenSecondaryRGBAColor,
   greenSecTextStyle,
@@ -24,18 +25,27 @@ import {
   rowCenter,
   SPACE_16,
   SPACE_4,
+  SPACE_8,
   whiteColor,
 } from "@/constants/theme";
+import { CheckCircle } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { currencyFormat } from "../../../utils/currencyFormat";
 import Gap from "./Gap";
 
-const TileOrder = ({ item, isReport = false, onPress }: any) => {
+const TileOrder = ({
+  item,
+  isReport = false,
+  onPress,
+  showComplete = false,
+  completeLoading = false,
+  onComplete,
+}: any) => {
   const id = item?.id;
   const customerName = item?.customer_name;
+  const customerPhone = item?.customer_phone;
   const date = item?.created_at;
-  const branch = item?.branch;
   const statusOrder = item?.status_order_name;
   const qty = item?.qty;
   const subtotal = item?.subtotal;
@@ -49,14 +59,14 @@ const TileOrder = ({ item, isReport = false, onPress }: any) => {
   return (
     <Pressable onPress={onPress} style={styles.tileContainer}>
       <View style={rowCenter}>
-        <View style={{ width: "49%" }}>
+        <View style={{ width: "55%" }}>
           <Text
             style={[blackTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
           >
             {id}
           </Text>
         </View>
-        <View style={{ width: "49%", alignItems: "flex-end" }}>
+        <View style={{ width: "44%", alignItems: "flex-end" }}>
           <Text style={[styles.textDate]}>{date}</Text>
         </View>
       </View>
@@ -71,7 +81,7 @@ const TileOrder = ({ item, isReport = false, onPress }: any) => {
             {customerName}
           </Text>
           <Gap height={SPACE_4} />
-          <Text style={[blackTextStyle]}>(Cabang {branch})</Text>
+          <Text style={[blackTextStyle]}>{customerPhone}</Text>
         </View>
         <View style={{ width: "49%", alignItems: "flex-end" }}>
           <View
@@ -89,7 +99,7 @@ const TileOrder = ({ item, isReport = false, onPress }: any) => {
                     ? greenSecondaryRGBAColor
                     : reject
                     ? redRGBAColor
-                    : blackRBGAColor,
+                    : blackRGBAColor,
                 borderColor:
                   disprosesSales || disprosesSO
                     ? orangeColor
@@ -158,6 +168,36 @@ const TileOrder = ({ item, isReport = false, onPress }: any) => {
           </Text>
         </View>
       </View>
+      {showComplete ? (
+        <>
+          <Gap height={SPACE_16} />
+          <Pressable
+            onPress={onComplete}
+            disabled={completeLoading}
+            style={[
+              styles.completeBtn,
+              completeLoading && { opacity: 0.6 },
+            ]}
+          >
+            <CheckCircle size={16} color={whiteColor} />
+            <Gap width={SPACE_8} />
+            <Text
+              style={[
+                blackTextStyle,
+                {
+                  color: whiteColor,
+                  fontSize: 13,
+                  fontFamily: FontFamily.satoshiMedium,
+                },
+              ]}
+            >
+              {completeLoading
+                ? "Memproses..."
+                : "Selesai — Masukkan ke Stock"}
+            </Text>
+          </Pressable>
+        </>
+      ) : null}
     </Pressable>
   );
 };
@@ -177,6 +217,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 57,
+  },
+  completeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: greenColor,
+    borderRadius: 10,
+    paddingVertical: 10,
   },
   textDate: {
     fontFamily: FontFamily.satoshiMedium,

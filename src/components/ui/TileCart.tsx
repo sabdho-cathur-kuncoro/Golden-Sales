@@ -1,4 +1,3 @@
-import EditIcon from "@/assets/icons/ic-edit.svg";
 import {
   bgColor,
   blackTextStyle,
@@ -7,239 +6,239 @@ import {
   greyTertiaryColor,
   greyTextStyle,
   lineColor,
-  orangeColor,
   orangeTextStyle,
-  pinkSecondaryColor,
+  primaryColor,
   rowCenter,
   SPACE_16,
   SPACE_4,
   SPACE_8,
   whiteColor,
 } from "@/constants/theme";
-import { Trash2 } from "lucide-react-native";
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Check, ChevronDown, ChevronUp, Trash2 } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { currencyFormat } from "../../../utils/currencyFormat";
+import { lineWithPromo } from "../../../utils/promo";
 import AnimatedPressable from "./AnimatedPressable";
 import Gap from "./Gap";
 
-function TileCart({ data, onSelect, onTapNote, onPressDelete, onPress }: any) {
-  const isItemSelected = data?.isProductSelected;
-  const [qty, setQty] = useState(String(data?.qty) ?? "0");
+function TileCart({
+  item,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
+  selectedSerials = [],
+  onToggleSerial,
+  onToggleSerialAll,
+  onInc,
+  onDec,
+  onChangeQty,
+  onDelete,
+  onRemoveSerial,
+}: any) {
+  const serials: string[] = item?.serials ?? [];
+  const isSerial = serials.length > 0;
+  const qtyNum = isSerial ? serials.length : Number(item?.quantity) || 0;
 
-  // useEffect(() => {
-  //   setQty(data.qty ?? "0");
-  // }, [data.qty]);
+  const [qty, setQty] = useState(String(qtyNum));
+  // Serial sub-list collapse (serial lines only). Collapsed by default.
+  const [open, setOpen] = useState(false);
+  // Keep the displayed qty in sync when the store updates item.quantity.
+  useEffect(() => {
+    setQty(String(qtyNum));
+  }, [qtyNum]);
+
+  const unit = Number(item?.salesPrice) || 0;
+  const info = lineWithPromo(unit, qtyNum, item?.promos);
+  const hasPromo = info.discountPerUnit > 0;
+
+  const allSerialsSelected =
+    isSerial && selectedSerials.length === serials.length;
+
+  const commitQty = (text: string) => {
+    const n = parseInt(text, 10);
+    onChangeQty?.(Number.isFinite(n) ? n : 0);
+  };
 
   return (
-    <Pressable onPress={onPress} style={styles.cardContainer}>
-      <View style={{ width: "9%" }}>
-        <AnimatedPressable onPress={onSelect}>
-          <View style={styles.radioContainer}>
-            {isItemSelected ? (
-              <View style={[styles.radioFillContainer]} />
-            ) : (
-              <></>
-            )}
-          </View>
-        </AnimatedPressable>
-      </View>
-      <View style={{ width: "90%" }}>
+    <View style={styles.cardContainer}>
+      {selectable ? (
+        <View style={{ width: "9%" }}>
+          <AnimatedPressable onPress={onToggleSelect}>
+            <View style={[styles.checkbox, selected && styles.checkboxOn]}>
+              {selected ? <Check size={14} color={whiteColor} /> : null}
+            </View>
+          </AnimatedPressable>
+        </View>
+      ) : null}
+
+      <View style={{ width: selectable ? "90%" : "100%" }}>
         {/* PRODUCT NAME & DELETE */}
         <View style={[rowCenter]}>
           <View style={{ width: "85%" }}>
             <Text
               style={[blackTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
             >
-              {data?.name ?? "-"}
+              {item?.productName ?? "-"}
             </Text>
           </View>
-          <View
-            style={{
-              width: "14%",
-              alignItems: "flex-end",
-            }}
-          >
-            <AnimatedPressable onPress={onPressDelete}>
+          <View style={{ width: "14%", alignItems: "flex-end" }}>
+            <AnimatedPressable onPress={onDelete}>
               <Trash2 size={20} color={greyColor} />
             </AnimatedPressable>
           </View>
         </View>
         <Gap height={SPACE_4} />
-        {/* PRRICE & QTY */}
+
+        {/* PRICE & QTY */}
         <View style={[rowCenter]}>
           <View style={{ width: "55%" }}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text
-                style={[
-                  orangeTextStyle,
-                  { fontFamily: FontFamily.satoshiBold },
-                ]}
+                style={[orangeTextStyle, { fontFamily: FontFamily.satoshiBold }]}
               >
-                {currencyFormat(data?.discountPrice ?? data?.normalPrice ?? 0)}
+                {currencyFormat(hasPromo ? unit - info.discountPerUnit : unit)}
               </Text>
-              {data?.discountPrice ? (
+              {hasPromo ? (
                 <>
                   <Gap width={SPACE_4} />
                   <Text
                     style={[
                       blackTextStyle,
-                      {
-                        fontSize: 10,
-                        textDecorationLine: "line-through",
-                      },
+                      { fontSize: 10, textDecorationLine: "line-through" },
                     ]}
                   >
-                    {currencyFormat(data?.normalPrice ?? 0)}
+                    {currencyFormat(unit)}
                   </Text>
                 </>
               ) : null}
             </View>
           </View>
-          <View
-            style={{
-              width: "44%",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "flex-end",
-            }}
-          >
-            <AnimatedPressable>
-              <View style={styles.btn}>
-                <Text
-                  style={[
-                    greyTextStyle,
-                    { fontFamily: FontFamily.satoshiBold },
-                  ]}
-                >
-                  -
-                </Text>
-              </View>
-            </AnimatedPressable>
-            <Gap width={SPACE_8} />
-            <TextInput
-              value={qty}
-              onChangeText={(text) => setQty(text)}
-              style={[
-                blackTextStyle,
-                {
-                  minWidth: "10%",
-                  fontFamily: FontFamily.satoshiBold,
-                },
-              ]}
-            />
-            <Gap width={SPACE_8} />
-            <AnimatedPressable>
-              <View style={styles.btn}>
-                <Text
-                  style={[
-                    greyTextStyle,
-                    { fontFamily: FontFamily.satoshiBold },
-                  ]}
-                >
-                  +
-                </Text>
-              </View>
-            </AnimatedPressable>
-          </View>
-        </View>
-        <Gap height={10} />
-        {/* NOTE */}
-        <AnimatedPressable onPress={onTapNote}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <EditIcon width={16} height={16} color={greyColor} />
-            <Gap width={4} />
-            <Text
-              style={[
-                greyTextStyle,
-                { fontSize: 10, fontFamily: FontFamily.satoshiMedium },
-              ]}
-            >
-              Catatan Produk
-            </Text>
-          </View>
-        </AnimatedPressable>
-        {/* <Gap height={10} /> */}
-        {/* VOUCHER */}
-        {/* <AnimatedPressable>
-            <View style={styles.rowVoc}>
-              <VocIcon width={20} height={20} color={blueSecondaryColor} />
-              <Gap width={10} />
+
+          {/* Serial lines can't be qty-stepped; tap the count to expand/collapse. */}
+          {isSerial ? (
+            <AnimatedPressable onPress={() => setOpen((v) => !v)}>
               <View
-                style={[
-                  {
-                    flexDirection: "row",
-                    alignItems: "center",
-                    width: "auto",
-                    maxWidth: "85%",
-                  },
-                ]}
+                style={{
+                  width: "44%",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                }}
               >
-                {data?.voucher.length > 0 ? (
-                  data?.voucher.map((voc: any, index: any) => {
-                    const lengthVoc = data?.voucher.length;
-                    const vocMoreThanOne = data?.voucher.length > 1;
-                    const isLastVoc = index === lengthVoc - 1;
-                    return (
-                      <View key={index} style={{ flexDirection: "row" }}>
-                        <Text
-                          style={[
-                            greyTextStyle,
-                            { fontSize: 12, marginRight: 2 },
-                          ]}
-                        >
-                          {voc ?? "-"}
-                        </Text>
-                        {vocMoreThanOne && (
-                          <Text
-                            style={[
-                              greyTextStyle,
-                              { fontSize: 12, marginRight: 2 },
-                            ]}
-                          >
-                            {!isLastVoc ? "," : ""}
-                          </Text>
-                        )}
-                      </View>
-                    );
-                  })
+                <Text style={[greyTextStyle, { fontSize: 12 }]}>
+                  {serials.length} nomor
+                </Text>
+                <Gap width={SPACE_4} />
+                {open ? (
+                  <ChevronUp size={16} color={greyColor} />
                 ) : (
-                  <Text style={[greyTextStyle, { fontSize: 12 }]}>
-                    Tambahkan kode voucher item
-                  </Text>
+                  <ChevronDown size={16} color={greyColor} />
                 )}
               </View>
+            </AnimatedPressable>
+          ) : (
+            <View
+              style={{
+                width: "44%",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "flex-end",
+              }}
+            >
+              <AnimatedPressable onPress={onDec}>
+                <View style={styles.btn}>
+                  <Text
+                    style={[greyTextStyle, { fontFamily: FontFamily.satoshiBold }]}
+                  >
+                    -
+                  </Text>
+                </View>
+              </AnimatedPressable>
+              <Gap width={SPACE_8} />
+              <TextInput
+                value={qty}
+                onChangeText={setQty}
+                onEndEditing={(e) => commitQty(e.nativeEvent.text)}
+                keyboardType="number-pad"
+                style={[
+                  blackTextStyle,
+                  {
+                    minWidth: "20%",
+                    fontFamily: FontFamily.satoshiBold,
+                    textAlign: "center",
+                  },
+                ]}
+              />
+              <Gap width={SPACE_8} />
+              <AnimatedPressable onPress={onInc}>
+                <View style={styles.btn}>
+                  <Text
+                    style={[greyTextStyle, { fontFamily: FontFamily.satoshiBold }]}
+                  >
+                    +
+                  </Text>
+                </View>
+              </AnimatedPressable>
             </View>
-          </AnimatedPressable> */}
+          )}
+        </View>
+
+        {/* SERIAL SUB-LIST (collapsible) */}
+        {isSerial && open ? (
+          <View style={{ marginTop: SPACE_8 }}>
+            <AnimatedPressable onPress={onToggleSerialAll}>
+              <View style={styles.serialRow}>
+                <View
+                  style={[
+                    styles.checkbox,
+                    allSerialsSelected && styles.checkboxOn,
+                  ]}
+                >
+                  {allSerialsSelected ? (
+                    <Check size={12} color={whiteColor} />
+                  ) : null}
+                </View>
+                <Gap width={SPACE_8} />
+                <Text style={[greyTextStyle, { fontSize: 11 }]}>
+                  Pilih semua nomor
+                </Text>
+              </View>
+            </AnimatedPressable>
+            {serials.map((sn) => {
+              const checked = selectedSerials.includes(sn);
+              return (
+                <View key={sn} style={styles.serialRow}>
+                  <AnimatedPressable onPress={() => onToggleSerial?.(sn)}>
+                    <View
+                      style={[styles.checkbox, checked && styles.checkboxOn]}
+                    >
+                      {checked ? <Check size={12} color={whiteColor} /> : null}
+                    </View>
+                  </AnimatedPressable>
+                  <Gap width={SPACE_8} />
+                  <Text
+                    style={[blackTextStyle, { flex: 1, fontSize: 13 }]}
+                    numberOfLines={1}
+                  >
+                    {sn}
+                  </Text>
+                  <AnimatedPressable onPress={() => onRemoveSerial?.(sn)}>
+                    <Trash2 size={16} color={greyColor} />
+                  </AnimatedPressable>
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
       </View>
-    </Pressable>
+    </View>
   );
 }
 
 export default React.memo(TileCart);
 
 const styles = StyleSheet.create({
-  radioContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: greyColor,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "visible",
-  },
-  radioFillContainer: {
-    width: 16,
-    height: 16,
-    borderRadius: 6,
-    backgroundColor: orangeColor,
-  },
   cardContainer: {
     backgroundColor: whiteColor,
     width: "100%",
@@ -251,19 +250,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: lineColor,
   },
-  iconBinContainer: {
-    width: 36,
-    height: 36,
-    padding: 8,
-    borderRadius: 10,
-    backgroundColor: pinkSecondaryColor,
-  },
-  infoContainer: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: bgColor,
-    flexDirection: "row",
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: greyTertiaryColor,
     alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxOn: {
+    backgroundColor: primaryColor,
+    borderColor: primaryColor,
   },
   btn: {
     width: 24,
@@ -274,13 +272,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  rowVoc: {
+  serialRow: {
     flexDirection: "row",
     alignItems: "center",
-    borderColor: lineColor,
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: SPACE_8,
-    paddingVertical: SPACE_4,
+    backgroundColor: bgColor,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: SPACE_8,
+    marginBottom: SPACE_4,
   },
 });

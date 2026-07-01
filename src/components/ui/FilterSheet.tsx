@@ -29,6 +29,7 @@ export type PaymentOption = { label: string; value: string | null };
 export const PAYMENT_OPTIONS: PaymentOption[] = [
   { label: "Semua Metode", value: null },
   { label: "Transfer Bank", value: "Transfer Bank" },
+  { label: "COD", value: "COD" },
   { label: "Tunai", value: "Tunai" },
 ];
 

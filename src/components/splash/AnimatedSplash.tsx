@@ -1,5 +1,6 @@
 import Shadow from "@/assets/images/splash-shadow.svg";
 import { FontFamily, primaryColor, whiteTextStyle } from "@/constants/theme";
+import { ImageBackground } from "expo-image";
 import React, { useEffect } from "react";
 import { Dimensions, Image, StatusBar, StyleSheet, View } from "react-native";
 import Animated, {
@@ -97,6 +98,7 @@ export default function AnimatedSplash({ onFinish }: Props) {
     }, totalDuration);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const logoStyle = useAnimatedStyle(() => ({
@@ -122,7 +124,10 @@ export default function AnimatedSplash({ onFinish }: Props) {
   }));
 
   return (
-    <View style={styles.container}>
+    <ImageBackground
+      source={require("../../../assets/images/bg.png")}
+      style={styles.container}
+    >
       <StatusBar barStyle={"light-content"} />
       <Animated.View style={[styles.shadow, shadowStyle]}>
         <Shadow width={width / 2.2} height={100} />
@@ -150,7 +155,7 @@ export default function AnimatedSplash({ onFinish }: Props) {
           </Animated.Text>
         </View>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 

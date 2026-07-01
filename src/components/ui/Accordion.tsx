@@ -1,5 +1,5 @@
 import {
-  bgTertiaryColor,
+  bgSecondaryColor,
   blackTextStyle,
   FontFamily,
   greyColor,
@@ -59,7 +59,7 @@ const Accordion = ({
         <View
           style={[
             styles.iconBadge,
-            { backgroundColor: isOpen ? primaryColor : bgTertiaryColor },
+            { backgroundColor: isOpen ? primaryColor : bgSecondaryColor },
           ]}
         >
           <Icon size={20} color={isOpen ? whiteColor : iconColor} />

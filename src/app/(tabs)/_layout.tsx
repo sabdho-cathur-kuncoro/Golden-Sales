@@ -1,9 +1,11 @@
-import ApprovalIcon from "@/assets/icons/ic-approval.svg";
 import HomeIcon from "@/assets/icons/ic-home.svg";
 import ProfileIcon from "@/assets/icons/ic-profile.svg";
+import ReqItemIcon from "@/assets/icons/ic-request-item.svg";
 import TransaksiIcon from "@/assets/icons/ic-transaksi.svg";
+import { AnimatedPressable } from "@/components/ui";
 import {
   FontFamily,
+  pinkColor,
   primaryColor,
   SPACE_16,
   SPACE_8,
@@ -11,8 +13,18 @@ import {
   tabBarColor,
   whiteColor,
 } from "@/constants/theme";
-import { Tabs, usePathname } from "expo-router";
-import { Pressable, PressableProps, StyleSheet, Text } from "react-native";
+import { useCameraAccess } from "@/hooks/useCameraAccess";
+import { useToast } from "@/hooks/useToast";
+import { LinearGradient } from "expo-linear-gradient";
+import { Tabs, usePathname, useRouter } from "expo-router";
+import { ScanQrCode } from "lucide-react-native";
+import {
+  Pressable,
+  PressableProps,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 type TabButtonProps = {
   icon: string;
@@ -21,6 +33,42 @@ type TabButtonProps = {
 } & PressableProps;
 
 function TabButton({ icon, label, focused, ...props }: TabButtonProps) {
+  const router = useRouter();
+  const toast = useToast();
+  const { request } = useCameraAccess();
+
+  // FAB (Penjualan)
+  if (icon === "sale") {
+    async function handleScan() {
+      const granted = await request();
+
+      if (!granted) {
+        toast.warning(
+          "Perhatian",
+          "Izin kamera dibutuhkan untuk pindai kode QR/Barcode.",
+          5000
+        );
+        return;
+      }
+      router.push("/scan");
+      console.log("SCAN");
+    }
+    return (
+      <AnimatedPressable onPress={handleScan}>
+        <View style={styles.buttonWrapper}>
+          <LinearGradient
+            colors={[pinkColor, primaryColor]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0.7, y: 1 }}
+            style={styles.FAB}
+          >
+            <ScanQrCode width={32} height={32} color={whiteColor} />
+          </LinearGradient>
+          <Text style={[styles.label, styles.fabLabel]}>{label}</Text>
+        </View>
+      </AnimatedPressable>
+    );
+  }
   return (
     <Pressable {...props} style={styles.buttonWrapper}>
       {icon === "home" && (
@@ -31,8 +79,8 @@ function TabButton({ icon, label, focused, ...props }: TabButtonProps) {
         />
       )}
 
-      {icon === "approval" && (
-        <ApprovalIcon
+      {icon === "request" && (
+        <ReqItemIcon
           width={24}
           height={24}
           color={focused ? primaryColor : tabBarColor}
@@ -84,19 +132,6 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="approval"
-        options={{
-          tabBarButton: (props) => (
-            <TabButton
-              {...props}
-              icon="approval"
-              label="Approval"
-              focused={pathname === "/approval"}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="transaksi"
         options={{
           tabBarButton: (props) => (
@@ -105,6 +140,32 @@ export default function TabsLayout() {
               icon="transaksi"
               label="Transaksi"
               focused={pathname === "/transaksi"}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="dummy"
+        options={{
+          tabBarButton: (props) => (
+            <TabButton
+              {...props}
+              icon="sale"
+              label="Penjualan"
+              focused={false}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="request"
+        options={{
+          tabBarButton: (props) => (
+            <TabButton
+              {...props}
+              icon="request"
+              label="Minta Barang"
+              focused={pathname === "/request"}
             />
           ),
         }}
@@ -147,5 +208,20 @@ const styles = StyleSheet.create({
   },
   labelActive: {
     color: primaryColor,
+  },
+  FAB: {
+    position: "absolute",
+    bottom: -8,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 5,
+  },
+
+  fabLabel: {
+    position: "absolute",
+    bottom: -40,
   },
 });

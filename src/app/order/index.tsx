@@ -1,218 +1,357 @@
-import { Button, Gap, Header } from "@/components/ui";
-import { OutletData } from "@/constants/dummy";
+import CartIcon from "@/assets/icons/ic-cart.svg";
+import { AnimatedPressable, FocusAwareStatusBar, Gap } from "@/components/ui";
 import {
   bgColor,
   blackColor,
   blackTextStyle,
+  darkPrimaryColor,
   FontFamily,
   greyColor,
   greyTextStyle,
   lineColor,
-  paddingScroll,
+  orangeTextStyle,
+  paddingH,
+  pinkSecondaryColor,
   primaryColor,
-  primaryTextStyle,
+  redColor,
   rowCenter,
   screen,
   SPACE_16,
+  SPACE_4,
+  SPACE_8,
   whiteColor,
+  whiteTextStyle,
 } from "@/constants/theme";
-import { useBottomSheetStore } from "@/stores/bottomSheet.store";
-import { useGlobalStore } from "@/stores/global.store";
-import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import useProductListController from "@/hooks/useProductListController";
+import useWarehouse from "@/hooks/useWarehouse";
+import { selectCartCount, useCartStore } from "@/stores/cart.store";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { ChevronRight, MapPin, Search } from "lucide-react-native";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ImageIcon,
+  Search,
+  Warehouse,
+  X,
+} from "lucide-react-native";
 import React from "react";
 import {
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { currencyFormat } from "../../../utils/currencyFormat";
+import { imgSrc } from "../../../utils/helper";
 
 const Order = () => {
-  const openSheet = useBottomSheetStore((s) => s.open);
-  const closeSheet = useBottomSheetStore((s) => s.close);
-  const { setAddress } = useGlobalStore();
+  const cartCount = useCartStore(selectCartCount);
+  // Warehouse locked to the login user (see `useWarehouse`) — no picker.
+  const { warehouse } = useWarehouse();
+  const { filtered, loading, search, setSearch, refreshing, onRefresh } =
+    useProductListController({ scopeToWarehouse: true });
 
-  const handleOpen = (outlet: any) => {
-    const address = outlet?.list_address;
-    const snapPoints = address?.length <= 2 ? ["55%"] : ["80%"];
-
-    openSheet(
-      <BottomSheetFlatList
-        style={{ flex: 1 }}
-        data={address}
-        keyExtractor={(item: any) => item.id.toString()}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingBottom: 8,
-        }}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => {
-              setAddress(item);
-              router.push({
-                pathname: "/order/product",
-                params: { address: JSON.stringify(item) },
-              });
-              closeSheet();
-            }}
-            style={[
-              rowCenter,
-              {
-                width: "100%",
-                borderWidth: 1,
-                borderColor: lineColor,
-                borderRadius: 10,
-                padding: 10,
-                marginBottom: 20,
-              },
-            ]}
-          >
-            <View
-              style={{
-                width: "15%",
-                alignItems: "center",
-              }}
-            >
-              <MapPin size={24} color={primaryColor} />
-            </View>
-
-            <View style={{ width: "83%" }}>
-              <Text
-                style={[
-                  primaryTextStyle,
-                  {
-                    fontSize: 18,
-                    fontFamily: FontFamily.satoshiMedium,
-                  },
-                ]}
-              >
-                {item?.name}
-              </Text>
-
-              <Gap height={4} />
-
-              <Text style={[greyTextStyle, { fontSize: 12 }]}>
-                {item?.address}
-              </Text>
-            </View>
-          </Pressable>
-        )}
-      />,
-      snapPoints,
-      // header
-      <>
-        <Text
+  return (
+    <LinearGradient
+      colors={[darkPrimaryColor, primaryColor]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.7, y: 1 }}
+      style={[screen]}
+    >
+      <FocusAwareStatusBar barStyle={"light-content"} />
+      <View style={[styles.header]}>
+        <View
           style={[
-            blackTextStyle,
             {
-              fontFamily: FontFamily.satoshiMedium,
+              flexDirection: "row",
+              alignItems: "center",
+              width: "75%",
             },
           ]}
         >
-          Pilih Alamat Tujuan
-        </Text>
-
-        <Gap height={10} />
-
-        <Text style={[greyTextStyle, { fontSize: 12 }]}>
-          Silakan tentukan alamat pengiriman untuk {outlet?.name}
-        </Text>
-
-        <Gap height={16} />
-      </>,
-      // footer
-      <Button
-        title="Batalkan"
-        titleColor={greyTextStyle}
-        border={1}
-        borderColor={greyColor}
-        bgColor={"transparent"}
-        onPress={closeSheet}
-      />
-    );
-  };
-
-  return (
-    <View style={[screen, { backgroundColor: whiteColor }]}>
-      <Header title={"Buat Order"} onBack={() => router.back()} />
-      <ScrollView
-        style={{ flex: 1, backgroundColor: bgColor }}
-        contentContainerStyle={[paddingScroll]}
-      >
-        <Text
-          style={[blackTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
-        >
-          Silakan Pilih Outlet
-        </Text>
-        <Gap height={SPACE_16} />
-        <View style={[rowCenter, styles.searchInputContainer]}>
-          <View style={{ width: "10%" }}>
-            <Search size={18} color={blackColor} />
-          </View>
-          <TextInput
-            placeholder="Cari nama outlet"
-            placeholderTextColor={greyColor}
-            numberOfLines={1}
-            style={[blackTextStyle, { width: "88%" }]}
-          />
+          <AnimatedPressable onPress={() => router.back()}>
+            <ChevronLeft size={24} color={whiteColor} />
+          </AnimatedPressable>
+          <Gap width={SPACE_16} />
+          <Text
+            style={[whiteTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
+          >
+            Order Barang
+          </Text>
         </View>
-        <Gap height={SPACE_16} />
-        {OutletData.map((item: any) => {
-          return (
-            <Pressable
-              key={item.id}
-              onPress={() => {
-                handleOpen(item);
-              }}
-              style={[
-                rowCenter,
-                {
-                  width: "100%",
-                  backgroundColor: whiteColor,
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: SPACE_16,
-                },
-              ]}
-            >
-              <View style={{ width: "85%" }}>
+        <View
+          style={{
+            width: "24%",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+          }}
+        >
+          <AnimatedPressable onPress={() => router.push("/cart")}>
+            {cartCount > 0 ? (
+              <View style={styles.dot}>
+                <Text style={[whiteTextStyle, { fontSize: 8 }]}>
+                  {cartCount > 99 ? "99+" : cartCount}
+                </Text>
+              </View>
+            ) : null}
+            <View style={styles.iconContainer}>
+              <CartIcon width={22} color={whiteColor} />
+            </View>
+          </AnimatedPressable>
+        </View>
+      </View>
+      <View style={[styles.topContent]}>
+        {/* WAREHOUSE — locked to the sales user's warehouse */}
+        <View style={[paddingH]}>
+          <View style={styles.tileWarehouseContainer}>
+            <View style={[rowCenter, { width: "75%" }]}>
+              <View style={{ width: "14%" }}>
+                <View style={styles.iconWrapperContainer}>
+                  <Warehouse size={20} color={primaryColor} />
+                </View>
+              </View>
+              <View style={{ width: "80%" }}>
+                <Text style={[greyTextStyle, { fontSize: 11 }]}>Gudang</Text>
                 <Text
                   style={[
                     blackTextStyle,
                     { fontFamily: FontFamily.satoshiMedium },
                   ]}
+                  numberOfLines={1}
                 >
-                  {item.name}
-                </Text>
-                <Gap height={10} />
-                <Text style={[greyTextStyle, { fontSize: 12 }]}>
-                  {item.count_address} alamat
+                  {warehouse?.name ?? "Memuat..."}
                 </Text>
               </View>
-              <View style={{ width: "12%", alignItems: "flex-end" }}>
-                <ChevronRight size={28} color={blackColor} />
+            </View>
+            {/* Locked to login warehouse. To re-enable a picker: render a
+                Pressable here that opens a warehouse bottom sheet. */}
+            <View style={{ width: "25%", alignItems: "flex-end" }}>
+              <Text style={[greyTextStyle, { fontSize: 12 }]}>Terkunci</Text>
+            </View>
+          </View>
+        </View>
+        {/* SEARCH */}
+        <Gap height={10} />
+        <View style={[paddingH]}>
+          <View style={[styles.searchInputContainer]}>
+            <View style={{ width: "10%" }}>
+              <View style={[styles.iconWrapperContainer]}>
+                <Search size={18} color={primaryColor} />
               </View>
-            </Pressable>
-          );
-        })}
+            </View>
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Cari produk"
+              placeholderTextColor={greyColor}
+              numberOfLines={1}
+              style={[blackTextStyle, { width: "75%" }]}
+            />
+            {search.length > 0 ? (
+              <Pressable
+                onPress={() => setSearch("")}
+                hitSlop={8}
+                style={{ width: "10%", alignItems: "flex-end" }}
+              >
+                <X size={18} color={greyColor} />
+              </Pressable>
+            ) : null}
+          </View>
+          <Gap height={SPACE_16} />
+          <Text
+            style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}
+          >
+            Daftar Produk
+          </Text>
+        </View>
+      </View>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: bgColor }}
+        contentContainerStyle={[paddingH, { paddingBottom: 100 }]}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {loading && filtered.length === 0 ? (
+          <Text style={[greyTextStyle, styles.stateText]}>Memuat...</Text>
+        ) : filtered.length === 0 ? (
+          <Text style={[greyTextStyle, styles.stateText]}>
+            Tidak ada produk
+          </Text>
+        ) : (
+          filtered.map((item: any) => {
+            const uri = imgSrc(item?.imageList[0]);
+            return (
+              <Pressable
+                key={item.uid ?? item.id}
+                onPress={() =>
+                  router.push({
+                    pathname: "/order/productDetail",
+                    params: { uid: item.uid },
+                  })
+                }
+              >
+                <LinearGradient
+                  colors={[whiteColor, pinkSecondaryColor]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.cardContainer}
+                >
+                  <View style={[rowCenter, { width: "84%" }]}>
+                    <View
+                      style={{
+                        width: "20%",
+                        height: 56,
+                      }}
+                    >
+                      {uri ? (
+                        <Image
+                          source={{ uri }}
+                          style={{ width: "100%", height: "100%" }}
+                          contentFit="contain"
+                        />
+                      ) : (
+                        <View style={styles.imgPlaceholder}>
+                          <ImageIcon size={24} color={greyColor} />
+                        </View>
+                      )}
+                    </View>
+                    <View style={{ width: "75%" }}>
+                      <Text
+                        style={[
+                          blackTextStyle,
+                          { fontSize: 16, fontFamily: FontFamily.satoshiBold },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {item.productName}
+                      </Text>
+                      {item.category ? (
+                        <>
+                          <Gap height={SPACE_8} />
+                          <Text style={[greyTextStyle, { fontSize: 12 }]}>
+                            {item.category}
+                          </Text>
+                        </>
+                      ) : null}
+                      <Gap height={4} />
+                      <Text
+                        style={[
+                          orangeTextStyle,
+                          { fontSize: 14, fontFamily: FontFamily.satoshiBold },
+                        ]}
+                      >
+                        {currencyFormat(item.price)}
+                      </Text>
+                      {item.stock != null ? (
+                        <Text style={[greyTextStyle, { fontSize: 10 }]}>
+                          Stok: {item.stock}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+                  <View style={{ width: "15%", alignItems: "flex-end" }}>
+                    <ChevronRight size={28} color={blackColor} />
+                  </View>
+                </LinearGradient>
+              </Pressable>
+            );
+          })
+        )}
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 };
 
 export default Order;
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    minHeight: 40,
+    paddingHorizontal: SPACE_16,
+    paddingVertical: SPACE_16,
+    alignItems: "center",
+  },
+  topContent: {
+    width: "100%",
+    backgroundColor: bgColor,
+    paddingVertical: SPACE_16,
+  },
+  tileWarehouseContainer: {
+    width: "100%",
+    backgroundColor: whiteColor,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: lineColor,
+    flexDirection: "row",
+    alignItems: "center",
+  },
   searchInputContainer: {
     width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: whiteColor,
     borderRadius: 10,
     paddingHorizontal: 10,
+    paddingVertical: SPACE_4,
     minHeight: 40,
+    borderWidth: 0.5,
+    borderColor: lineColor,
+  },
+  cardContainer: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: 10,
+    padding: SPACE_16,
+    marginBottom: SPACE_16,
+  },
+  imgPlaceholder: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 8,
+    backgroundColor: bgColor,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stateText: {
+    textAlign: "center",
+    fontSize: 13,
+    paddingVertical: 48,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dot: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 18,
+    height: 18,
+    borderRadius: 18,
+    backgroundColor: redColor,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 99,
+  },
+  iconWrapperContainer: {
+    padding: SPACE_8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    backgroundColor: pinkSecondaryColor,
   },
 });

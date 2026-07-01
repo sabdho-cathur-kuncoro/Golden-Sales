@@ -1,4 +1,4 @@
-import { Gap, Header } from "@/components/ui";
+import { FocusAwareStatusBar, Gap, Header } from "@/components/ui";
 import { OrderDetail } from "@/constants/dummy";
 import {
   bgColor,
@@ -26,20 +26,12 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { CheckCircle2, CircleX, Signature } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { currencyFormat } from "../../../utils/currencyFormat";
 import { formatDate, formatDateTime } from "../../../utils/days";
 
 const ReportDetail = () => {
   const { id, statusOrder } = useLocalSearchParams();
-  const { width } = useWindowDimensions();
   const [detailTransaksi, setDetailTransaksi] = useState<any>(null);
 
   useEffect(() => {
@@ -51,6 +43,7 @@ const ReportDetail = () => {
   }
   return (
     <View style={[screen, { backgroundColor: whiteColor }]}>
+      <FocusAwareStatusBar barStyle={"dark-content"} />
       <Header title={"Detail Laporan"} onBack={() => router.back()} />
       <ScrollView
         style={{ flex: 1, backgroundColor: bgColor }}

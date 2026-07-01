@@ -2,15 +2,18 @@ import { FormInput, FormPassword } from "@/components/form";
 import { Button, Gap } from "@/components/ui";
 import {
   bgColor,
-  blueTextStyle,
   FontFamily,
   greyColor,
+  primaryTextStyle,
   shadow,
   whiteColor,
   whiteTextStyle,
 } from "@/constants/theme";
+import { useLoading } from "@/hooks/useLoading";
+import { useToast } from "@/hooks/useToast";
+import { getProfileService, onLoginService } from "@/services/auth.services";
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ImageBackground,
@@ -22,6 +25,63 @@ import {
 } from "react-native";
 
 const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const toast = useToast();
+  const loading = useLoading();
+
+  useEffect(() => {
+    if (__DEV__) {
+      setUsername("agus.rianto@golden.com");
+      setPassword("P@ssw0rd");
+    }
+  }, []);
+
+  const onLogin = async () => {
+    if (username.trim().length === 0) {
+      toast.info("Info", "Username/Email/Telepon tidak boleh kosong");
+      return;
+    }
+    if (password.trim().length === 0) {
+      toast.info("Info", "Password tidak boleh kosong");
+      return;
+    }
+    const controller = new AbortController();
+    try {
+      loading.show({
+        message: "Mencoba masuk...",
+        cancellable: true,
+        onCancel: () => controller.abort(),
+      });
+      const form = {
+        username,
+        password,
+      };
+      const res = await onLoginService(form, controller);
+      if (res !== 200 || res === undefined) {
+        toast.error("Wrong", "Terjadi Kesalahan");
+        return;
+      }
+      router.replace("/home");
+      toast.success("Berhasil", "Berhasil masuk ke akun!");
+      getProfileService().catch(() => {}); // background profile enrich
+      setUsername("");
+      setPassword("");
+    } catch (err) {
+      if (controller.signal.aborted) return; // user cancelled — no toast
+      if (__DEV__) {
+        console.log("[ERR]", err);
+      }
+      toast.warning(
+        "Perhatian",
+        `${err ?? "Terjadi kesalahan saat login!"}`,
+        5000
+      );
+    } finally {
+      loading.hide();
+    }
+  };
   return (
     <ImageBackground
       style={styles.page}
@@ -47,7 +107,9 @@ const Login = () => {
         Masuk ke Akun Anda
       </Text>
       <Gap height={12} />
-      <Text style={[whiteTextStyle]}>Masukan username dan password Anda</Text>
+      <Text style={[whiteTextStyle]}>
+        Masukan username/email/telepon dan password Anda
+      </Text>
       <Gap height={50} />
       <View style={{ paddingHorizontal: 32, width: "100%" }}>
         <View
@@ -62,12 +124,16 @@ const Login = () => {
           ]}
         >
           <FormInput
-            label="Username"
-            placeholder="Masukan username"
+            value={username}
+            onChangeText={(text) => setUsername(text)}
+            label="Username/Email/Telepon"
+            placeholder="Masukan username/email/telepon"
             placeholderTextColor={greyColor}
           />
           <Gap height={16} />
           <FormPassword
+            value={password}
+            onChangeText={(text) => setPassword(text)}
             label="Password"
             placeholderVisible="Masukkan password"
             placeholderTextColor={greyColor}
@@ -79,7 +145,7 @@ const Login = () => {
           >
             <Text
               style={[
-                blueTextStyle,
+                primaryTextStyle,
                 { fontFamily: FontFamily.satoshiMedium, fontSize: 12 },
               ]}
             >
@@ -87,11 +153,7 @@ const Login = () => {
             </Text>
           </TouchableOpacity>
           <Gap height={24} />
-          <Button
-            title="Masuk"
-            isIconVisible
-            onPress={() => router.replace("/home")}
-          />
+          <Button title="Masuk" isIconVisible onPress={onLogin} />
         </View>
       </View>
     </ImageBackground>

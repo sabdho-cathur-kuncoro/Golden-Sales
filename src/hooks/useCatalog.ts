@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import {
   getCategoriesProduct,
   getDetailsCategoryProduct,
-} from "../services/catalog.service";
+} from "../services/catalog.services";
 import { useToast } from "./useToast";
 
 const useCatalog = () => {
@@ -12,10 +12,12 @@ const useCatalog = () => {
 
   const fetchCatalog = useCallback(() => {
     onGetCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDetailCatalog = useCallback((id: number) => {
     onGetDetailCategories(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function onGetCategories() {

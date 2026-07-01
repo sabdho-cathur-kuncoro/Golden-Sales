@@ -1,6 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
-import { StyleSheet } from "react-native";
 import StatusScreen from "./StatusScreen";
 
 type ActionType = "go-home" | "go-back" | "go-transaction" | "close";
@@ -63,5 +62,3 @@ const StatusPage = () => {
 };
 
 export default StatusPage;
-
-const styles = StyleSheet.create({});

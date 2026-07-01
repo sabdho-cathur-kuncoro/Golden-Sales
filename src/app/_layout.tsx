@@ -1,11 +1,15 @@
-import { GlobalConfirmModal, GlobalInputModal } from "@/components/modal";
-import { AppBottomSheet, Toast } from "@/components/ui";
+import {
+  GlobalConfirmModal,
+  GlobalInputModal,
+  GlobalPrePermissionModal,
+} from "@/components/modal";
+import NotificationPoller from "@/components/NotificationPoller";
+import { AppBottomSheet, GlobalLoading, Toast } from "@/components/ui";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { StatusBar, View } from "react-native";
-import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
@@ -16,8 +20,6 @@ export default function TabLayout() {
     satoshiMedium: require("../../assets/fonts/Satoshi-Medium.otf"),
     satoshiBold: require("../../assets/fonts/Satoshi-Bold.otf"),
   });
-
-  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     SplashScreen.preventAutoHideAsync();
@@ -39,11 +41,15 @@ export default function TabLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="scan" options={{ presentation: "modal" }} />
           </Stack>
           <AppBottomSheet />
           <Toast />
           <GlobalConfirmModal />
           <GlobalInputModal />
+          <GlobalPrePermissionModal />
+          <GlobalLoading />
+          <NotificationPoller />
         </KeyboardProvider>
       </View>
     </GestureHandlerRootView>

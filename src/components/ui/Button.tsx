@@ -18,6 +18,7 @@ type Props = {
   border?: number;
   isIconVisible?: boolean;
   radius?: number;
+  disabled?: boolean;
   onPress?: () => void;
 };
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -30,6 +31,7 @@ export default function Button({
   bgColor = primaryColor,
   borderColor = primaryColor,
   border = 0,
+  disabled = false,
   onPress,
 }: Props) {
   const scale = useSharedValue(1);
@@ -57,11 +59,12 @@ export default function Button({
           backgroundColor: bgColor,
           borderWidth: border,
           borderColor,
+          opacity: disabled ? 0.5 : 1,
         },
       ]}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+      onPress={disabled ? undefined : onPress}
+      onPressIn={disabled ? undefined : handlePressIn}
+      onPressOut={disabled ? undefined : handlePressOut}
     >
       <Text style={[styles.text, { color: titleColor }]}>{title}</Text>
       {isIconVisible && (

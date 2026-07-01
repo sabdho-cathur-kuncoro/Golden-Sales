@@ -37,3 +37,19 @@ export function generateChat(messages: any) {
   }, []);
   return items;
 }
+
+export const getInitials = (name?: string) => {
+  const words = (name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+  // one word -> first two letters of that word
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  // two or more words -> first letter of first + first letter of second word
+  return (words[0][0] + words[1][0]).toUpperCase();
+};
+
+export const imgSrc = (product: any) =>
+  product?.imageBase64
+    ? `data:${product.imageContentType || "image/png"};base64,${
+        product.imageBase64
+      }`
+    : "";

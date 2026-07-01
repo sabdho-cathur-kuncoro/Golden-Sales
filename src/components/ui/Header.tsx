@@ -2,12 +2,16 @@ import CartIcon from "@/assets/icons/ic-cart.svg";
 import {
   blackColor,
   blackTextStyle,
-  dot,
-  primaryColor,
+  redColor,
   SPACE_16,
-  strokeColor,
   whiteColor,
+  whiteTextStyle,
 } from "@/constants/theme";
+import { selectCartCount, useCartStore } from "@/stores/cart.store";
+import {
+  selectNotifUnread,
+  useNotificationStore,
+} from "@/stores/notification.store";
 import { router } from "expo-router";
 import { Bell, ChevronLeft } from "lucide-react-native";
 import React from "react";
@@ -21,6 +25,8 @@ const Header = ({
   isNotifVisible = false,
   onBack,
 }: any) => {
+  const cartCount = useCartStore(selectCartCount);
+  const notifUnread = useNotificationStore(selectNotifUnread);
   return (
     <View style={styles.headerContainer}>
       <View
@@ -44,9 +50,15 @@ const Header = ({
           }}
         >
           <AnimatedPressable onPress={() => router.push("/notifikasi")}>
+            {notifUnread > 0 ? (
+              <View style={styles.dot}>
+                <Text style={[whiteTextStyle, { fontSize: 8 }]}>
+                  {notifUnread > 99 ? "99+" : notifUnread}
+                </Text>
+              </View>
+            ) : null}
             <View style={styles.iconContainer}>
-              <Bell size={22} color={primaryColor} />
-              <View style={[dot, { position: "absolute", top: 4, right: 6 }]} />
+              <Bell size={22} color={whiteColor} />
             </View>
           </AnimatedPressable>
         </View>
@@ -54,8 +66,15 @@ const Header = ({
       {isIconVisible ? (
         <View style={{ width: "14%", alignItems: "flex-end" }}>
           <AnimatedPressable onPress={() => router.push("/cart")}>
+            {cartCount > 0 ? (
+              <View style={styles.dot}>
+                <Text style={[whiteTextStyle, { fontSize: 8 }]}>
+                  {cartCount > 99 ? "99+" : cartCount}
+                </Text>
+              </View>
+            ) : null}
             <View style={styles.iconContainer}>
-              <CartIcon width={22} color={primaryColor} />
+              <CartIcon width={22} color={whiteColor} />
             </View>
           </AnimatedPressable>
         </View>
@@ -78,13 +97,23 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 5,
-    borderColor: strokeColor,
-    borderWidth: 1,
-    backgroundColor: "transparent",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.12)",
     alignItems: "center",
     justifyContent: "center",
+  },
+  dot: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 18,
+    height: 18,
+    borderRadius: 18,
+    backgroundColor: redColor,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 99,
   },
 });

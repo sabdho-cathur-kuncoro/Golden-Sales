@@ -1,11 +1,29 @@
 import { FormPassword } from "@/components/form";
-import { Button, Gap, Header } from "@/components/ui";
-import { greyColor, mainContent, paddingScroll, screen, whiteColor } from "@/constants/theme";
+import {
+  AnimatedPressable,
+  Button,
+  FocusAwareStatusBar,
+  Gap,
+} from "@/components/ui";
+import {
+  darkPrimaryColor,
+  FontFamily,
+  greyColor,
+  mainContent,
+  paddingScroll,
+  primaryColor,
+  screen,
+  SPACE_16,
+  whiteColor,
+  whiteTextStyle,
+} from "@/constants/theme";
 import { useToast } from "@/hooks/useToast";
+import { onChangePasswordService } from "@/services/auth.services";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
 import React, { useState } from "react";
-import { ScrollView, View } from "react-native";
-import { wait } from "../../../utils/helper";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 type FormState = {
   lama: string;
@@ -46,7 +64,8 @@ const ChangePassword = () => {
     if (!form.konfirmasi) {
       nextErrors.konfirmasi = "Konfirmasi password wajib diisi";
     } else if (form.konfirmasi !== form.baru) {
-      nextErrors.konfirmasi = "Konfirmasi password tidak sama dengan password baru";
+      nextErrors.konfirmasi =
+        "Konfirmasi password tidak sama dengan password baru";
     }
 
     setErrors(nextErrors);
@@ -57,9 +76,12 @@ const ChangePassword = () => {
     if (!validate()) return;
 
     setLoading(true);
+    const controller = new AbortController();
     try {
-      // TODO: connect to real change-password endpoint once auth API is wired up
-      await wait(1000);
+      await onChangePasswordService(
+        { currentPassword: form.lama, newPassword: form.baru },
+        controller
+      );
       toast.success("Berhasil", "Password berhasil diubah");
       setForm(initialForm);
       router.back();
@@ -74,8 +96,25 @@ const ChangePassword = () => {
   };
 
   return (
-    <View style={[screen, { backgroundColor: whiteColor }]}>
-      <Header title={"Ubah Password"} onBack={() => router.back()} />
+    <LinearGradient
+      colors={[darkPrimaryColor, primaryColor]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.7, y: 1 }}
+      style={[screen]}
+    >
+      <FocusAwareStatusBar barStyle={"light-content"} />
+      {/* HEADER */}
+      <View style={styles.header}>
+        <AnimatedPressable onPress={() => router.back()}>
+          <ChevronLeft size={24} color={whiteColor} />
+        </AnimatedPressable>
+        <Gap width={SPACE_16} />
+        <Text
+          style={[whiteTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
+        >
+          Ubah Kata Sandi
+        </Text>
+      </View>
       <View style={[mainContent]}>
         <ScrollView contentContainerStyle={[paddingScroll]}>
           <FormPassword
@@ -111,8 +150,18 @@ const ChangePassword = () => {
           />
         </ScrollView>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
 export default ChangePassword;
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    minHeight: 40,
+    paddingHorizontal: SPACE_16,
+    paddingVertical: SPACE_16,
+    alignItems: "center",
+  },
+});

@@ -1,21 +1,28 @@
-import { Accordion, Button, Gap, Header } from "@/components/ui";
+import {
+  Accordion,
+  AnimatedPressable,
+  FocusAwareStatusBar,
+  Gap,
+} from "@/components/ui";
 import {
   bgColor,
   blackTextStyle,
   borderInputColor,
-  darkBlueColor,
+  darkPrimaryColor,
   FontFamily,
   greyColor,
   greyTextStyle,
   mainContent,
   primaryColor,
   screen,
+  SPACE_16,
   whiteColor,
   whiteTextStyle,
 } from "@/constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
+  ChevronLeft,
   ClipboardCheck,
   Headset,
   HelpCircle,
@@ -28,22 +35,13 @@ import {
 import React, { useMemo, useState } from "react";
 import {
   LayoutAnimation,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  UIManager,
   View,
 } from "react-native";
-
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const FaqData = [
   {
@@ -103,8 +101,25 @@ const Faq = () => {
   }, [query]);
 
   return (
-    <View style={[screen, { backgroundColor: bgColor }]}>
-      <Header title={"FAQ"} onBack={() => router.back()} />
+    <LinearGradient
+      colors={[darkPrimaryColor, primaryColor]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.7, y: 1 }}
+      style={[screen]}
+    >
+      <FocusAwareStatusBar barStyle={"light-content"} />
+      {/* HEADER */}
+      <View style={styles.header}>
+        <AnimatedPressable onPress={() => router.back()}>
+          <ChevronLeft size={24} color={whiteColor} />
+        </AnimatedPressable>
+        <Gap width={SPACE_16} />
+        <Text
+          style={[whiteTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
+        >
+          FAQ
+        </Text>
+      </View>
       <View style={[mainContent]}>
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -112,9 +127,9 @@ const Faq = () => {
         >
           {/* HERO */}
           <LinearGradient
-            colors={[primaryColor, darkBlueColor]}
+            colors={[darkPrimaryColor, primaryColor]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            end={{ x: 0.7, y: 1 }}
             style={styles.hero}
           >
             <View style={styles.heroIcon}>
@@ -179,7 +194,7 @@ const Faq = () => {
           )}
 
           {/* SUPPORT CTA */}
-          <Gap height={8} />
+          {/* <Gap height={8} />
           <View style={styles.cta}>
             <View style={styles.ctaIcon}>
               <Headset size={22} color={primaryColor} />
@@ -196,10 +211,10 @@ const Faq = () => {
               title="Hubungi Support"
               onPress={() => router.push("/notifikasi")}
             />
-          </View>
+          </View> */}
         </ScrollView>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -210,6 +225,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 120,
+  },
+  header: {
+    flexDirection: "row",
+    minHeight: 40,
+    paddingHorizontal: SPACE_16,
+    paddingVertical: SPACE_16,
+    alignItems: "center",
   },
   hero: {
     borderRadius: 16,
