@@ -4,6 +4,7 @@ import {
   GlobalPrePermissionModal,
 } from "@/components/modal";
 import NotificationPoller from "@/components/NotificationPoller";
+import PushNotifications from "@/components/PushNotifications";
 import { AppBottomSheet, GlobalLoading, Toast } from "@/components/ui";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -50,6 +51,7 @@ export default function TabLayout() {
           <GlobalPrePermissionModal />
           <GlobalLoading />
           <NotificationPoller />
+          <PushNotifications />
         </KeyboardProvider>
       </View>
     </GestureHandlerRootView>

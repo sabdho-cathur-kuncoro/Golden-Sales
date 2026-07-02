@@ -34,6 +34,10 @@ yarn-error.*
 .env
 .env*.local
 
+# firebase config (inject via EAS file secrets in CI)
+config/google-services.json
+config/GoogleService-Info.plist
+
 # typescript
 *.tsbuildinfo
 

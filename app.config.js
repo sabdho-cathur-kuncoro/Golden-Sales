@@ -10,12 +10,21 @@ export default {
     scheme: "goldensales",
     userInterfaceStyle: "automatic",
     ios: {
+      entitlements: {
+        "aps-environment": "production",
+      },
       infoPlist: {
         NSCameraUsageDescription:
           "Kamera digunakan untuk scan QR atau Barcode produk",
+        // Wake app for FCM background/killed data messages (push req #1)
+        UIBackgroundModes: ["remote-notification"],
       },
       icon: "./assets/icon.png",
       bundleIdentifier: "com.rds.goldensales",
+      // Drop GoogleService-Info.plist in ./config (from Firebase console) before iOS build
+      googleServicesFile:
+        process.env.GOOGLE_SERVICES_PLIST ??
+        "./config/GoogleService-Info.plist",
     },
     android: {
       permissions: ["CAMERA", "ACCESS_FINE_LOCATION", "POST_NOTIFICATIONS"],
@@ -25,6 +34,9 @@ export default {
       },
       predictiveBackGestureEnabled: true,
       package: "com.rds.goldensales",
+      // Drop google-services.json in ./config (from Firebase console) before Android build
+      googleServicesFile:
+        process.env.GOOGLE_SERVICES_JSON ?? "./config/google-services.json",
     },
     web: {
       output: "static",
@@ -98,11 +110,15 @@ export default {
           },
         },
       ],
+      // Push: FCM transport (@react-native-firebase) + notifee display layer.
+      // expo-notifications intentionally removed — token-only, no FCM topic API.
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
       [
-        "expo-notifications",
+        "expo-build-properties",
         {
-          icon: "./assets/icon.png",
-          color: "#ffffff",
+          // RN Firebase iOS requires static frameworks to compile
+          ios: { useFrameworks: "static" },
         },
       ],
       "expo-sharing",
