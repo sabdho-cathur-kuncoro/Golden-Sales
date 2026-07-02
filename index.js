@@ -2,11 +2,15 @@
 // (outside the React tree) so background & killed-state delivery works.
 // Must run before the app mounts — hence require("expo-router/entry") last.
 import notifee, { EventType } from "@notifee/react-native";
-import messaging from "@react-native-firebase/messaging";
+import { getApp } from "@react-native-firebase/app";
+import {
+  getMessaging,
+  setBackgroundMessageHandler,
+} from "@react-native-firebase/messaging";
 import { displayFcmMessage } from "./src/notifications/display";
 
 // Background/killed FCM data message → render via notifee (req #1)
-messaging().setBackgroundMessageHandler(async (message) => {
+setBackgroundMessageHandler(getMessaging(getApp()), async (message) => {
   await displayFcmMessage(message);
 });
 

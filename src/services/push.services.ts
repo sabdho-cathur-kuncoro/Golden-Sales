@@ -1,6 +1,18 @@
 import { APIBEARER } from "@/constants/API";
 import { getApiErrorMessage } from "@/utils/apiError";
-import messaging from "@react-native-firebase/messaging";
+import { getApp } from "@react-native-firebase/app";
+import {
+  AuthorizationStatus,
+  getMessaging,
+  getToken,
+  requestPermission,
+  subscribeToTopic,
+  unsubscribeFromTopic,
+} from "@react-native-firebase/messaging";
+
+// Lazy accessor: mirror the old namespaced `messaging()` (resolved per-call,
+// after native init) rather than a module-scope instance.
+const fcm = () => getMessaging(getApp());
 
 /**
  * FCM transport wrappers. Display/channels/badge live in the notifee layer
@@ -11,10 +23,10 @@ import messaging from "@react-native-firebase/messaging";
 /** Ask the OS for push permission. Returns true if authorized/provisional. */
 export async function requestPushPermission(): Promise<boolean> {
   try {
-    const status = await messaging().requestPermission();
+    const status = await requestPermission(fcm());
     return (
-      status === messaging.AuthorizationStatus.AUTHORIZED ||
-      status === messaging.AuthorizationStatus.PROVISIONAL
+      status === AuthorizationStatus.AUTHORIZED ||
+      status === AuthorizationStatus.PROVISIONAL
     );
   } catch (err: any) {
     if (__DEV__) console.log("requestPushPermission", err);
@@ -25,7 +37,7 @@ export async function requestPushPermission(): Promise<boolean> {
 /** Current FCM registration token for this device (null on failure). */
 export async function getFcmToken(): Promise<string | null> {
   try {
-    return await messaging().getToken();
+    return await getToken(fcm());
   } catch (err: any) {
     if (__DEV__) console.log("getFcmToken", err);
     return null;
@@ -34,7 +46,7 @@ export async function getFcmToken(): Promise<string | null> {
 
 export async function subscribeTopic(topic: string): Promise<void> {
   try {
-    await messaging().subscribeToTopic(topic);
+    await subscribeToTopic(fcm(), topic);
   } catch (err: any) {
     if (__DEV__) console.log("subscribeTopic", topic, err);
   }
@@ -42,7 +54,7 @@ export async function subscribeTopic(topic: string): Promise<void> {
 
 export async function unsubscribeTopic(topic: string): Promise<void> {
   try {
-    await messaging().unsubscribeFromTopic(topic);
+    await unsubscribeFromTopic(fcm(), topic);
   } catch (err: any) {
     if (__DEV__) console.log("unsubscribeTopic", topic, err);
   }

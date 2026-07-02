@@ -1,4 +1,16 @@
 import "dotenv/config";
+import { createRequire } from "node:module";
+import path from "node:path";
+
+const require = createRequire(import.meta.url);
+// Notifee ships its `core` AAR as a bundled local maven repo, not on any
+// public registry. Its own gradle self-injection of this repo doesn't reach
+// the :app classpath under Expo CNG, so declare it explicitly. Path resolved
+// at prebuild time = portable across machines/CI (no hardcoded absolute path).
+const notifeeAndroidLibs = path.join(
+  path.dirname(require.resolve("@notifee/react-native/package.json")),
+  "android/libs"
+);
 
 export default {
   expo: {
@@ -119,6 +131,8 @@ export default {
         {
           // RN Firebase iOS requires static frameworks to compile
           ios: { useFrameworks: "static" },
+          // Notifee `core` AAR lives in a bundled local maven repo (see above).
+          android: { extraMavenRepos: [notifeeAndroidLibs] },
         },
       ],
       "expo-sharing",

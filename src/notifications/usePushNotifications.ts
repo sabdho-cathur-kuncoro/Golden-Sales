@@ -7,7 +7,14 @@ import {
 import { useAuthStore } from "@/stores/auth.store";
 import { useNotificationStore } from "@/stores/notification.store";
 import notifee, { EventType } from "@notifee/react-native";
-import messaging from "@react-native-firebase/messaging";
+import { getApp } from "@react-native-firebase/app";
+import {
+  getInitialNotification,
+  getMessaging,
+  onMessage,
+  onNotificationOpenedApp,
+  onTokenRefresh,
+} from "@react-native-firebase/messaging";
 import { useEffect, useRef } from "react";
 import { ensureChannels } from "./channels";
 import { displayFcmMessage } from "./display";
@@ -16,6 +23,9 @@ import { handleNotificationOpen } from "./navigation";
 /** Topics every authenticated sales user gets. TODO: confirm taxonomy + add
  *  role/region topics from the user object once backend defines them. */
 const DEFAULT_TOPICS = ["sales"];
+
+// Lazy modular messaging accessor (resolved per-call, after native init).
+const fcm = () => getMessaging(getApp());
 
 /**
  * Foreground push wiring (req #1 fg, #2 tap, #3 display, #4 clear-on-open).
@@ -62,20 +72,20 @@ export function usePushNotifications(): void {
           notifeeInitial.notification.data as any
         );
       } else {
-        const fcmInitial = await messaging().getInitialNotification();
+        const fcmInitial = await getInitialNotification(fcm());
         if (fcmInitial) await handleNotificationOpen(fcmInitial.data as any);
       }
 
       if (cancelled) return;
 
       // foreground FCM → display via notifee + refresh bell
-      unsubMessage = messaging().onMessage(async (m) => {
+      unsubMessage = onMessage(fcm(), async (m) => {
         await displayFcmMessage(m);
         useNotificationStore.getState().refetch();
       });
 
       // background → tapped to foreground
-      unsubOpened = messaging().onNotificationOpenedApp((m) =>
+      unsubOpened = onNotificationOpenedApp(fcm(), (m) =>
         handleNotificationOpen(m.data as any)
       );
 
@@ -87,7 +97,7 @@ export function usePushNotifications(): void {
       });
 
       // token rotates → re-register
-      unsubTokenRefresh = messaging().onTokenRefresh((t) =>
+      unsubTokenRefresh = onTokenRefresh(fcm(), (t) =>
         registerTokenWithBackend(t).catch(() => {})
       );
     })();
