@@ -1,18 +1,12 @@
-import {
-  getCartsService,
-  onDeleteCartService,
-  onUpdateCartService,
-} from "@/services/cart.services";
 import { cartCache } from "@/storage/cart.cache";
-import { useAuthStore } from "@/stores/auth.store";
 import { create } from "zustand";
 import { lineWithPromo } from "../../utils/promo";
 
 /**
- * Cart state + sync, mirroring the web `CartContext` flow adapted to RN:
- * in-memory `items`, persisted to one local blob (cartCache), debounced full-cart
- * PUT to the blob endpoint. Backed by Zustand so all screens share one cart
- * (the RN-idiomatic stand-in for a Context Provider). Consume via `useCart`.
+ * Local-only cart state (no backend `/cart` endpoint exists). In-memory `items`
+ * persisted to one local blob (cartCache/SQLite). Backed by Zustand so all
+ * screens share one cart (the RN-idiomatic stand-in for a Context Provider).
+ * Consume via `useCart`.
  */
 
 type CartState = {
@@ -21,15 +15,15 @@ type CartState = {
   /** Locked warehouse for the current order — 1 order = 1 warehouse. */
   warehouse: any | null;
   hydrate: () => Promise<void>;
-  /** Re-pull DB blob (instant paint) then server (authoritative). Always runs. */
+  /** Re-pull the local DB blob into memory. Always runs. */
   refresh: () => Promise<void>;
-  /** Apply an updater to items, persist locally, and schedule a server push. */
+  /** Apply an updater to items and persist locally. */
   setItems: (updater: (prev: any[]) => any[]) => void;
   /** Upsert a non-serial line keyed by product id; qty <= 0 removes it. */
   setQty: (product: any, qty: number) => void;
   /** Upsert a serial line keyed by product id; empty serials removes it. */
   addSerial: (product: any, serials: any[]) => void;
-  /** Reset items and fire-and-forget the server clear. */
+  /** Reset items (local only). `id` kept for call-site compatibility. */
   clear: (id: string) => void;
   /** Remove a whole line by product id. */
   remove: (productId: any) => void;
@@ -42,7 +36,7 @@ type CartState = {
    * non-empty cart empties it first (stock is warehouse-specific).
    */
   setWarehouse: (wh: any) => void;
-  /** Wipe local cart only (memory + blob), keep the server cart. Used on logout. */
+  /** Wipe local cart (memory + blob). Used on logout. */
   clearLocal: () => void;
 };
 
@@ -89,33 +83,10 @@ const buildLine = (product: any, quantity: number, serials: any[]) => ({
   serials,
 });
 
-// Module-scope sync bookkeeping (outside React, like the snippet's refs).
-let saveTimer: ReturnType<typeof setTimeout> | null = null;
-let lastSavedJson: string | null = null;
+// Guards concurrent refresh() runs (outside React, like the snippet's refs).
 let hydrating = false;
 
-const customerId = () => useAuthStore.getState().user?.id ?? null;
-
 export const useCartStore = create<CartState>((set, get) => {
-  /** Debounced full-cart push (500ms), skipping no-ops. */
-  const scheduleSync = () => {
-    if (!get().hydrated || !customerId()) return;
-
-    const currentJson = JSON.stringify(get().items);
-    if (currentJson === lastSavedJson) return;
-
-    if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      onUpdateCartService(currentJson)
-        .then(() => {
-          lastSavedJson = currentJson;
-        })
-        .catch(() => {
-          // offline → local blob still holds the change; retry on next mutate
-        });
-    }, 500);
-  };
-
   return {
     items: [],
     hydrated: false,
@@ -132,27 +103,8 @@ export const useCartStore = create<CartState>((set, get) => {
       if (hydrating) return;
       hydrating = true;
       try {
-        // Local blob first for instant paint.
         const local = await cartCache.load();
-        if (local.length) set({ items: local });
-
-        if (customerId()) {
-          try {
-            const data = await getCartsService();
-            // Server shape unconfirmed: accept a bare array, or `{ items }`
-            // where items is a JSON-string blob or an array.
-            const raw = data?.items ?? data;
-            const serverItems =
-              typeof raw === "string" ? JSON.parse(raw || "[]") : raw;
-            if (Array.isArray(serverItems)) {
-              set({ items: serverItems });
-              lastSavedJson = JSON.stringify(serverItems);
-              await cartCache.save(serverItems);
-            }
-          } catch {
-            // server down / offline — keep the local blob
-          }
-        }
+        set({ items: local });
       } finally {
         hydrating = false;
       }
@@ -162,7 +114,6 @@ export const useCartStore = create<CartState>((set, get) => {
       const next = updater(get().items);
       set({ items: next });
       cartCache.save(next).catch(() => {});
-      scheduleSync();
     },
 
     setQty: (product, qty) => {
@@ -181,14 +132,9 @@ export const useCartStore = create<CartState>((set, get) => {
       });
     },
 
-    clear: (id: string) => {
+    clear: (_id: string) => {
       set({ items: [] });
       cartCache.clear().catch(() => {});
-      if (saveTimer) clearTimeout(saveTimer);
-      if (customerId()) {
-        onDeleteCartService(id).catch(() => {});
-        lastSavedJson = "[]";
-      }
     },
 
     remove: (productId) => {
@@ -208,14 +154,8 @@ export const useCartStore = create<CartState>((set, get) => {
     },
 
     clearAll: () => {
-      const current = get().warehouse;
       set({ items: [], warehouse: null });
       cartCache.clear().catch(() => {});
-      if (saveTimer) clearTimeout(saveTimer);
-      if (customerId()) {
-        onDeleteCartService(String(current?.id ?? "")).catch(() => {});
-        lastSavedJson = "[]";
-      }
     },
 
     setWarehouse: (wh: any) => {
@@ -225,22 +165,14 @@ export const useCartStore = create<CartState>((set, get) => {
       if (current?.id !== wh?.id && get().items.length > 0) {
         set({ items: [] });
         cartCache.clear().catch(() => {});
-        if (saveTimer) clearTimeout(saveTimer);
-        if (customerId()) {
-          onDeleteCartService(String(current?.id ?? "")).catch(() => {});
-          lastSavedJson = "[]";
-        }
       }
       set({ warehouse: wh });
     },
 
     clearLocal: () => {
-      // Cancel any pending debounced PUT so it can't fire after logout.
-      if (saveTimer) clearTimeout(saveTimer);
-      // Reset hydrated so a re-login re-pulls the new user's server cart.
+      // Reset hydrated so a re-login re-reads the local cart.
       set({ items: [], hydrated: false, warehouse: null });
       cartCache.clear().catch(() => {});
-      lastSavedJson = null;
     },
   };
 });

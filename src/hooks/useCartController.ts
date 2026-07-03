@@ -167,7 +167,12 @@ const useCartController = () => {
     [setQty]
   );
   const onDec = useCallback(
-    (item: any) => setQty(toProduct(item), (item.quantity ?? 0) - 1),
+    (item: any) => {
+      // Clamp at 1 — decrement never deletes the line (use handleDelete for that).
+      const next = (item.quantity ?? 0) - 1;
+      if (next < 1) return;
+      setQty(toProduct(item), next);
+    },
     [setQty]
   );
   const onChangeQty = useCallback(

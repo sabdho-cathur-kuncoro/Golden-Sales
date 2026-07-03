@@ -7,9 +7,6 @@ type NotifState = {
   refetch: () => Promise<void>;
 };
 
-let pollTimer: ReturnType<typeof setInterval> | null = null;
-export const POLL_INTERVAL = 20000; // 20s — matches web NotificationContext
-
 export const useNotificationStore = create<NotifState>((set) => ({
   unread: 0,
   refetch: async () => {
@@ -27,18 +24,7 @@ export const useNotificationStore = create<NotifState>((set) => ({
 /** Unread count — use as a zustand selector for the bell badge. */
 export const selectNotifUnread = (s: NotifState): number => s.unread;
 
-export function startNotifPolling() {
-  if (pollTimer) return;
+/** One-shot unread-count refetch (badge). No interval — foreground + push drive updates. */
+export function refetchNotifCount() {
   useNotificationStore.getState().refetch();
-  pollTimer = setInterval(
-    () => useNotificationStore.getState().refetch(),
-    POLL_INTERVAL
-  );
-}
-
-export function stopNotifPolling() {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
 }

@@ -1,6 +1,5 @@
 import {
-  startNotifPolling,
-  stopNotifPolling,
+  refetchNotifCount,
   useNotificationStore,
 } from "@/stores/notification.store";
 import { useAuthStore } from "@/stores/auth.store";
@@ -8,28 +7,26 @@ import { useEffect } from "react";
 import { AppState } from "react-native";
 
 /**
- * Headless: drives the notification unread-count poll lifecycle.
- * Polls while authenticated, refetches on app foreground (RN equivalent of
- * the web `visibilitychange`), and stops + clears on logout.
+ * Headless: drives the notification unread-count badge.
+ * Refetches on login and on app foreground (RN equivalent of the web
+ * `visibilitychange`); push (FCM) covers live updates. Clears on logout.
  */
 function NotificationPoller() {
   const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
     if (!token) {
-      stopNotifPolling();
       useNotificationStore.setState({ unread: 0 });
       return;
     }
-    startNotifPolling();
+    refetchNotifCount();
     const sub = AppState.addEventListener("change", (state) => {
       if (state === "active") {
-        useNotificationStore.getState().refetch();
+        refetchNotifCount();
       }
     });
     return () => {
       sub.remove();
-      stopNotifPolling();
     };
   }, [token]);
 
