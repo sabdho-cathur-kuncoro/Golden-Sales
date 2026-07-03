@@ -22,6 +22,7 @@ import {
   whiteSecondaryColor,
   whiteTextStyle,
 } from "@/constants/theme";
+import { unsubscribeAllTopics } from "@/notifications/topics";
 import { useAuthStore } from "@/stores/auth.store";
 import { useConfirmStore } from "@/stores/confirm.store";
 import AntDesignIC from "@expo/vector-icons/AntDesign";
@@ -42,7 +43,9 @@ const Profile = () => {
       message: "Yakin ingin keluar akun ini?",
       type: "danger",
       onConfirm: async () => {
-        useAuthStore.getState().logout();
+        // Unsubscribe topics BEFORE logout — backend service reads token from store.
+        await unsubscribeAllTopics();
+        await useAuthStore.getState().logout();
         router.replace("/(auth)/login");
       },
     });

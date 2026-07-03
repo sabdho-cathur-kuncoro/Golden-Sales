@@ -1,9 +1,5 @@
 import { useNotificationAccess } from "@/hooks/useNotificationAccess";
-import {
-  getFcmToken,
-  registerTokenWithBackend,
-  subscribeTopic,
-} from "@/services/push.services";
+import { subscribeTokenWithBackend } from "@/services/push.services";
 import { useAuthStore } from "@/stores/auth.store";
 import { useNotificationStore } from "@/stores/notification.store";
 import notifee, { EventType } from "@notifee/react-native";
@@ -19,10 +15,7 @@ import { useEffect, useRef } from "react";
 import { ensureChannels } from "./channels";
 import { displayFcmMessage } from "./display";
 import { handleNotificationOpen } from "./navigation";
-
-/** Topics every authenticated sales user gets. TODO: confirm taxonomy + add
- *  role/region topics from the user object once backend defines them. */
-const DEFAULT_TOPICS = ["sales"];
+import { currentTopics, subscribeAllTopics } from "./topics";
 
 // Lazy modular messaging accessor (resolved per-call, after native init).
 const fcm = () => getMessaging(getApp());
@@ -37,6 +30,7 @@ const fcm = () => getMessaging(getApp());
  */
 export function usePushNotifications(): void {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const topic = useAuthStore((s) => s.user?.topic ?? null);
   const { request } = useNotificationAccess();
 
   // request() is re-created every render → keep latest in a ref so the effect
@@ -59,18 +53,17 @@ export function usePushNotifications(): void {
       const granted = await requestRef.current();
       if (!granted || cancelled) return;
 
-      const token = await getFcmToken();
-      if (token) await registerTokenWithBackend(token).catch(() => {});
-      await Promise.all(DEFAULT_TOPICS.map(subscribeTopic));
+      // const token = await getFcmToken();
+      // if (token) await registerTokenWithBackend(token).catch(() => {});
+      // per-user topic from login response (e.g. "SLS0016") + shared defaults
+      await subscribeAllTopics(currentTopics());
 
       // killed-state cold start: app launched by tapping a notification.
       // notifee path covers data messages it displayed; messaging path covers
       // FCM "notification" messages the OS displayed directly.
       const notifeeInitial = await notifee.getInitialNotification();
       if (notifeeInitial) {
-        await handleNotificationOpen(
-          notifeeInitial.notification.data as any
-        );
+        await handleNotificationOpen(notifeeInitial.notification.data as any);
       } else {
         const fcmInitial = await getInitialNotification(fcm());
         if (fcmInitial) await handleNotificationOpen(fcmInitial.data as any);
@@ -98,7 +91,7 @@ export function usePushNotifications(): void {
 
       // token rotates → re-register
       unsubTokenRefresh = onTokenRefresh(fcm(), (t) =>
-        registerTokenWithBackend(t).catch(() => {})
+        subscribeTokenWithBackend(t).catch(() => {})
       );
     })();
 
@@ -109,5 +102,5 @@ export function usePushNotifications(): void {
       unsubForeground?.();
       unsubTokenRefresh?.();
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, topic]);
 }

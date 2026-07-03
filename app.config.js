@@ -12,6 +12,9 @@ const notifeeAndroidLibs = path.join(
   "android/libs"
 );
 
+// Writes res/drawable/ic_notification.xml on every prebuild (survives --clean).
+const withNotificationIcon = require("./plugins/withNotificationIcon");
+
 export default {
   expo: {
     name: "Sales - Belanja Yuk!",
@@ -55,6 +58,7 @@ export default {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
+      withNotificationIcon,
       "expo-router",
       [
         "react-native-permissions/app.plugin.js",

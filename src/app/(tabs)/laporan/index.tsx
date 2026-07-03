@@ -23,7 +23,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
   Bell,
-  ChevronLeft,
   ChevronRight,
   ClipboardList,
   LucideIcon,
@@ -70,12 +69,11 @@ const Report = () => {
       <FocusAwareStatusBar barStyle={"light-content"} />
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <AnimatedPressable onPress={() => router.back()}>
-            <ChevronLeft size={24} color={whiteColor} />
-          </AnimatedPressable>
-          <Gap width={SPACE_16} />
           <Text
-            style={[whiteTextStyle, { fontFamily: FontFamily.satoshiMedium }]}
+            style={[
+              whiteTextStyle,
+              { fontSize: 18, fontFamily: FontFamily.satoshiBold },
+            ]}
           >
             Laporan
           </Text>

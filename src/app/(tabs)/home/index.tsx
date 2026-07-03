@@ -1,6 +1,6 @@
 import CartIcon from "@/assets/icons/ic-cart.svg";
 import KatalogIcon from "@/assets/icons/ic-katalog.svg";
-import LaporanIcon from "@/assets/icons/ic-laporan.svg";
+import ReqItemIcon from "@/assets/icons/ic-request-item.svg";
 import { AnimatedPressable, BannerSlider, Gap } from "@/components/ui";
 import {
   bgColor,
@@ -190,6 +190,18 @@ const Home = () => {
             style={[styles.container, rowCenter, { alignItems: "flex-start" }]}
           >
             <Pressable
+              onPress={() => router.push("/request-product")}
+              style={styles.menuWrapper}
+            >
+              <View style={styles.iconMenuContainer}>
+                <ReqItemIcon width={28} height={28} color={primaryColor} />
+              </View>
+              <Gap height={SPACE_8} />
+              <Text style={[blackTextStyle, styles.menuLabel]}>
+                Minta Barang
+              </Text>
+            </Pressable>
+            <Pressable
               style={styles.menuWrapper}
               onPress={() => router.push("/return")}
             >
@@ -200,16 +212,6 @@ const Home = () => {
               <Text style={[blackTextStyle, styles.menuLabel]}>
                 Pengembalian
               </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => router.push("/report")}
-              style={styles.menuWrapper}
-            >
-              <View style={styles.iconMenuContainer}>
-                <LaporanIcon width={28} height={28} color={primaryColor} />
-              </View>
-              <Gap height={SPACE_8} />
-              <Text style={[blackTextStyle, styles.menuLabel]}>Laporan</Text>
             </Pressable>
             <Pressable
               onPress={() => router.push("/customer")}

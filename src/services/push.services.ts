@@ -1,14 +1,15 @@
-import { APIBEARER } from "@/constants/API";
+import { Config } from "@/constants/API";
+import { useAuthStore } from "@/stores/auth.store";
 import { getApiErrorMessage } from "@/utils/apiError";
+import notifee, { AuthorizationStatus } from "@notifee/react-native";
 import { getApp } from "@react-native-firebase/app";
 import {
-  AuthorizationStatus,
   getMessaging,
   getToken,
-  requestPermission,
   subscribeToTopic,
   unsubscribeFromTopic,
 } from "@react-native-firebase/messaging";
+import axios from "axios";
 
 // Lazy accessor: mirror the old namespaced `messaging()` (resolved per-call,
 // after native init) rather than a module-scope instance.
@@ -23,10 +24,10 @@ const fcm = () => getMessaging(getApp());
 /** Ask the OS for push permission. Returns true if authorized/provisional. */
 export async function requestPushPermission(): Promise<boolean> {
   try {
-    const status = await requestPermission(fcm());
+    const settings = await notifee.requestPermission();
     return (
-      status === AuthorizationStatus.AUTHORIZED ||
-      status === AuthorizationStatus.PROVISIONAL
+      settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+      settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
     );
   } catch (err: any) {
     if (__DEV__) console.log("requestPushPermission", err);
@@ -64,11 +65,27 @@ export async function unsubscribeTopic(topic: string): Promise<void> {
  * Register the FCM token with the backend so the server can target this device.
  * TODO: confirm endpoint + payload shape with backend team.
  */
-export async function registerTokenWithBackend(token: string): Promise<void> {
+export async function subscribeTokenWithBackend(topic: string): Promise<void> {
+  const token = useAuthStore.getState().token;
   try {
-    await APIBEARER.post("/notifications/device-token", {
+    await axios.post(`${Config.URL}/dev/fcm/subscribe`, {
       token,
-      platform: "expo",
+      topic,
+    });
+  } catch (err: any) {
+    if (__DEV__) console.log("registerTokenWithBackend", err);
+    throw new Error(getApiErrorMessage(err));
+  }
+}
+
+export async function unsubscribeTokenWithBackend(
+  topic: string
+): Promise<void> {
+  const token = useAuthStore.getState().token;
+  try {
+    await axios.post(`${Config.URL}/dev/fcm/unsubscribe`, {
+      token,
+      topic,
     });
   } catch (err: any) {
     if (__DEV__) console.log("registerTokenWithBackend", err);

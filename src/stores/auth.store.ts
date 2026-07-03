@@ -69,12 +69,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const token = get().token;
       if (!token) return;
 
+      // /me refresh may omit topic — preserve the one from login.
+      const prev = get().user;
+      const merged = {
+        ...user,
+        topic: user?.topic ?? prev?.topic ?? null,
+      };
+
       await authStorage.set({
         accessToken: token,
-        user,
+        user: merged,
       });
 
-      set({ user });
+      set({ user: merged });
     } catch (e) {
       console.error("[Auth:setUser]", e);
     }

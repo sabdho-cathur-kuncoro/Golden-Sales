@@ -1,6 +1,6 @@
 import HomeIcon from "@/assets/icons/ic-home.svg";
+import LaporanIcon from "@/assets/icons/ic-laporan.svg";
 import ProfileIcon from "@/assets/icons/ic-profile.svg";
-import ReqItemIcon from "@/assets/icons/ic-request-item.svg";
 import TransaksiIcon from "@/assets/icons/ic-transaksi.svg";
 import { AnimatedPressable } from "@/components/ui";
 import {
@@ -79,8 +79,8 @@ function TabButton({ icon, label, focused, ...props }: TabButtonProps) {
         />
       )}
 
-      {icon === "request" && (
-        <ReqItemIcon
+      {icon === "laporan" && (
+        <LaporanIcon
           width={24}
           height={24}
           color={focused ? primaryColor : tabBarColor}
@@ -158,14 +158,14 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="request"
+        name="laporan"
         options={{
           tabBarButton: (props) => (
             <TabButton
               {...props}
-              icon="request"
-              label="Minta Barang"
-              focused={pathname === "/request"}
+              icon="laporan"
+              label="Laporan"
+              focused={pathname === "/laporan"}
             />
           ),
         }}

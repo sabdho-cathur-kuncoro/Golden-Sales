@@ -12,7 +12,6 @@ import {
   blackTextStyle,
   borderInputColor,
   darkPrimaryColor,
-  dot,
   FontFamily,
   greenColor,
   greyColor,
@@ -37,11 +36,11 @@ import useMyOrders from "@/hooks/useMyOrders";
 import { useToast } from "@/hooks/useToast";
 import { useBottomSheetStore } from "@/stores/bottomSheet.store";
 import { selectCartCount, useCartStore } from "@/stores/cart.store";
+import { useConfirmStore } from "@/stores/confirm.store";
 import {
   selectNotifUnread,
   useNotificationStore,
 } from "@/stores/notification.store";
-import { useConfirmStore } from "@/stores/confirm.store";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Bell, CheckCircle, ListFilter, Search } from "lucide-react-native";
@@ -248,60 +247,52 @@ const Transaksi = () => {
       <FocusAwareStatusBar barStyle={"light-content"} />
       {/* HEADER */}
       <View style={styles.header}>
-        <View
-          style={[
-            {
-              width: "100%",
-              flexDirection: "row",
-            },
-          ]}
-        >
-          <View style={{ width: "39%" }}>
-            <Text
-              style={[
-                whiteTextStyle,
-                { fontFamily: FontFamily.satoshiBold, fontSize: 18 },
-              ]}
-            >
-              Transaksi
-            </Text>
-          </View>
-          <View
-            style={{
-              width: "60%",
-              flexDirection: "row",
-              justifyContent: "flex-end",
-            }}
+        <View style={styles.headerLeft}>
+          <Text
+            style={[
+              whiteTextStyle,
+              { fontSize: 18, fontFamily: FontFamily.satoshiBold },
+            ]}
           >
-            <AnimatedPressable onPress={() => router.push("/notifikasi")}>
-              {notifCount > 0 ? (
-                <View style={styles.dot}>
-                  <Text style={[whiteTextStyle, { fontSize: 8 }]}>
-                    {notifCount > 99 ? "99+" : notifCount}
-                  </Text>
-                </View>
-              ) : null}
-              <View style={styles.iconContainer}>
-                <Bell size={22} color={whiteColor} />
+            Transaksi
+          </Text>
+        </View>
+        <View style={styles.headerRight}>
+          <AnimatedPressable onPress={() => router.push("/notifikasi")}>
+            {notifCount > 0 ? (
+              <View style={styles.cartDot}>
+                <Text style={[whiteTextStyle, { fontSize: 8 }]}>
+                  {notifCount > 99 ? "99+" : notifCount}
+                </Text>
               </View>
-            </AnimatedPressable>
-            <Gap width={20} />
-            <AnimatedPressable onPress={() => router.push("/cart")}>
-              {cartCount > 0 ? (
-                <View style={styles.dot}>
-                  <Text style={[whiteTextStyle, { fontSize: 8 }]}>
-                    {cartCount > 99 ? "99+" : cartCount}
-                  </Text>
-                </View>
-              ) : null}
-              <View style={styles.iconContainer}>
-                <CartIcon width={22} height={22} color={whiteColor} />
+            ) : null}
+            <View style={styles.iconContainer}>
+              <Bell size={22} color={whiteColor} />
+            </View>
+          </AnimatedPressable>
+          <Gap width={20} />
+          <AnimatedPressable onPress={() => router.push("/cart")}>
+            {cartCount > 0 ? (
+              <View style={styles.cartDot}>
+                <Text style={[whiteTextStyle, { fontSize: 8 }]}>
+                  {cartCount > 99 ? "99+" : cartCount}
+                </Text>
               </View>
-            </AnimatedPressable>
-          </View>
+            ) : null}
+            <View style={styles.iconContainer}>
+              <CartIcon width={22} height={22} color={whiteColor} />
+            </View>
+          </AnimatedPressable>
         </View>
       </View>
-      <View style={{ flex: 1, backgroundColor: bgColor }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: bgColor,
+          borderTopStartRadius: 20,
+          borderTopEndRadius: 20,
+        }}
+      >
         {/* TOP CONTENT */}
         <View style={[styles.topContent]}>
           {/* SEARCH + FILTER */}
@@ -433,10 +424,20 @@ export default Transaksi;
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    minHeight: 40,
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SPACE_16,
     paddingVertical: SPACE_16,
+    minHeight: 40,
+  },
+  headerLeft: {
+    flexDirection: "row",
     alignItems: "center",
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
   iconContainer: {
     width: 40,
@@ -580,5 +581,18 @@ const styles = StyleSheet.create({
     top: -2,
     right: -2,
     backgroundColor: lightBlueColor,
+  },
+  cartDot: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 3,
+    backgroundColor: primaryColor,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 99,
   },
 });

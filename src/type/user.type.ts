@@ -40,4 +40,6 @@ export type TypeUser = {
   image: string | null;
   status: string | null;
   userId: number | null;
+  /** FCM topic for this sales user (e.g. "SLS0016"), from the login response. */
+  topic: string | null;
 };

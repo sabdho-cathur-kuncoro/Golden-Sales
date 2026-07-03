@@ -19,7 +19,9 @@ export async function displayFcmMessage(
   const channelId = data.channelId ?? DEFAULT_CHANNEL_ID;
 
   await notifee.displayNotification({
-    id: data.notifId, // stable id → dedupe + targeted cancel on open (req #4)
+    // stable id → dedupe + targeted cancel on open (req #4). Omit when backend
+    // sends none: notifee rejects "" / undefined, so let it auto-generate.
+    ...(data.notifId ? { id: data.notifId } : {}),
     title,
     body,
     data,
