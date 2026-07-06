@@ -48,7 +48,7 @@ export default {
         backgroundColor: "#E6F4FE",
         backgroundImage: "./assets/icon.png",
       },
-      predictiveBackGestureEnabled: true,
+      predictiveBackGestureEnabled: false,
       package: "com.modoto.goldensales",
       // Drop google-services.json in ./config (from Firebase console) before Android build
       googleServicesFile:
