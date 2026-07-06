@@ -44,6 +44,16 @@ const useScanController = () => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const lastDecoded = useRef<{ code: string; at: number }>({ code: "", at: 0 });
+  // SN yang sedang di keranjang — sumber kebenaran sinkron untuk dedup
+  // (state `cart` tidak bisa dibaca-balik sinkron dari dalam updater setState).
+  const cartSns = useRef<Set<string>>(new Set());
+  // Cache resolusi QR-mentah → SN kanonik (dari checkSellService). Monotonik,
+  // tak perlu cleanup: `cartSns` yang authoritative soal isi keranjang. Dipakai
+  // agar scan-ulang QR terbungkus (mis. "B100X<sn>00001") short-circuit di
+  // pre-check tanpa hit server lagi.
+  const resolvedSn = useRef<Map<string, string>>(new Map());
+
+  const norm = (s: string) => s.trim().toUpperCase();
 
   const device = useCameraDevice("back");
   const format = useCameraFormat(device, [{ fps: 30 }]);
@@ -82,12 +92,11 @@ const useScanController = () => {
       }
       lastDecoded.current = { code: c, at: now };
 
-      let duplicate = false;
-      setCart((prev) => {
-        duplicate = prev.some((x) => x.qr === c);
-        return prev;
-      });
-      if (duplicate) {
+      // Pre-check sinkron — resolve QR mentah → SN kanonik (kalau pernah
+      // di-scan), lalu cek membership authoritative di `cartSns`.
+      const raw = norm(c);
+      const knownCanon = resolvedSn.current.get(raw) ?? raw;
+      if (cartSns.current.has(knownCanon)) {
         setStatusKind("err");
         setStatusMsg(`SN ${c} sudah di keranjang.`);
         return;
@@ -98,26 +107,43 @@ const useScanController = () => {
       setStatusMsg(`Memvalidasi ${c}…`);
       try {
         const res = await checkSellService(c);
-        if (!res?.success) {
+        if (!res?.success || !res?.item?.sn) {
           setStatusKind("err");
           setStatusMsg(res?.message || "SN tidak valid.");
           toast.warning("SN tidak valid", res?.message || `SN ${c} ditolak.`);
           return;
         }
         const it = res.item;
-        setCart((prev) => [
-          ...prev,
-          {
-            qr: it.sn,
-            productId: it.productId,
-            productName: it.productName || `Product #${it.productId}`,
-            productNumber: it.productNumber,
-            unitPrice: Number(it.unitPrice || 0),
-          },
-        ]);
-        setStatusKind("ok");
-        setStatusMsg(`✓ ${c} ditambah ke keranjang.`);
-        setManualQr("");
+        const sn = it.sn;
+        const k = norm(sn);
+        // Cache resolusi QR-mentah → kanonik untuk short-circuit scan berikutnya.
+        resolvedSn.current.set(raw, k);
+        // Guard kedua di dalam updater — dua SN bisa validasi konkuren sebelum
+        // salah satu commit, jadi pre-check saja tak cukup. Pakai SN kanonik.
+        let added = false;
+        setCart((prev) => {
+          if (prev.some((x) => norm(x.qr) === k)) return prev;
+          added = true;
+          return [
+            ...prev,
+            {
+              qr: sn,
+              productId: it.productId,
+              productName: it.productName || `Product #${it.productId}`,
+              productNumber: it.productNumber,
+              unitPrice: Number(it.unitPrice || 0),
+            },
+          ];
+        });
+        if (added) {
+          cartSns.current.add(k);
+          setStatusKind("ok");
+          setStatusMsg(`✓ ${sn} ditambah ke keranjang.`);
+          setManualQr("");
+        } else {
+          setStatusKind("err");
+          setStatusMsg(`SN ${sn} sudah di keranjang.`);
+        }
       } catch (err: any) {
         setStatusKind("err");
         setStatusMsg(err?.message || "Server error.");
@@ -144,10 +170,11 @@ const useScanController = () => {
   });
 
   const addFromStock = useCallback((sn: string, group: any) => {
-    let duplicate = false;
+    const k = norm(sn);
+    let added = false;
     setCart((prev) => {
-      duplicate = prev.some((x) => x.qr === sn);
-      if (duplicate) return prev;
+      if (prev.some((x) => norm(x.qr) === k)) return prev;
+      added = true;
       return [
         ...prev,
         {
@@ -159,16 +186,18 @@ const useScanController = () => {
         },
       ];
     });
-    if (duplicate) {
+    if (added) {
+      cartSns.current.add(k);
+      setStatusKind("ok");
+      setStatusMsg(`✓ ${sn} ditambah.`);
+    } else {
       setStatusKind("err");
       setStatusMsg(`SN ${sn} sudah di keranjang.`);
-      return;
     }
-    setStatusKind("ok");
-    setStatusMsg(`✓ ${sn} ditambah.`);
   }, []);
 
   const removeItem = useCallback((qr: string) => {
+    cartSns.current.delete(norm(qr));
     setCart((prev) => prev.filter((x) => x.qr !== qr));
   }, []);
 
@@ -208,6 +237,7 @@ const useScanController = () => {
                 res.totalAmount ?? cartTotal
               )}`
             );
+            cartSns.current.clear();
             setCart([]);
             setBuyerName("");
             setBuyerPhone("");
