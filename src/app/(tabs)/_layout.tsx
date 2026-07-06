@@ -51,7 +51,6 @@ function TabButton({ icon, label, focused, ...props }: TabButtonProps) {
         return;
       }
       router.push("/scan");
-      console.log("SCAN");
     }
     return (
       <AnimatedPressable onPress={handleScan}>
@@ -198,7 +197,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingTop: SPACE_16,
-    paddingBottom: SPACE_8,
+    paddingBottom: SPACE_16,
   },
   label: {
     fontSize: 12,
@@ -211,7 +210,7 @@ const styles = StyleSheet.create({
   },
   FAB: {
     position: "absolute",
-    bottom: -8,
+    bottom: 6,
     width: 64,
     height: 64,
     borderRadius: 32,
@@ -222,6 +221,6 @@ const styles = StyleSheet.create({
 
   fabLabel: {
     position: "absolute",
-    bottom: -40,
+    bottom: -24,
   },
 });
