@@ -35,7 +35,7 @@ export default {
         UIBackgroundModes: ["remote-notification"],
       },
       icon: "./assets/icon.png",
-      bundleIdentifier: "com.rds.goldensales",
+      bundleIdentifier: "com.modoto.goldensales",
       // Drop GoogleService-Info.plist in ./config (from Firebase console) before iOS build
       googleServicesFile:
         process.env.GOOGLE_SERVICES_PLIST ??
@@ -48,7 +48,7 @@ export default {
         backgroundImage: "./assets/icon.png",
       },
       predictiveBackGestureEnabled: true,
-      package: "com.rds.goldensales",
+      package: "com.modoto.goldensales",
       // Drop google-services.json in ./config (from Firebase console) before Android build
       googleServicesFile:
         process.env.GOOGLE_SERVICES_JSON ?? "./config/google-services.json",
