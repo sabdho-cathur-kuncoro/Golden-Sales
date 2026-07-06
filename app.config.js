@@ -14,6 +14,7 @@ const notifeeAndroidLibs = path.join(
 
 // Writes res/drawable/ic_notification.xml on every prebuild (survives --clean).
 const withNotificationIcon = require("./plugins/withNotificationIcon");
+const withAndroidSigning = require("./plugins/withAndroidSigning");
 
 export default {
   expo: {
@@ -59,6 +60,7 @@ export default {
     },
     plugins: [
       withNotificationIcon,
+      withAndroidSigning,
       "expo-router",
       [
         "react-native-permissions/app.plugin.js",
