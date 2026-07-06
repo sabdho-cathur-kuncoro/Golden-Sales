@@ -104,4 +104,6 @@ const AppBottomSheet = forwardRef<AppBottomSheetRef>((_, ref) => {
   );
 });
 
+AppBottomSheet.displayName = "AppBottomSheet";
+
 export default AppBottomSheet;
