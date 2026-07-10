@@ -1,6 +1,5 @@
 import {
   AnimatedPressable,
-  Button,
   FocusAwareStatusBar,
   Gap,
   Header,
@@ -28,7 +27,6 @@ import {
   redColor,
   rowCenter,
   screen,
-  shadow,
   SPACE_16,
   SPACE_4,
   SPACE_48,
@@ -38,18 +36,13 @@ import {
   whiteThirdColor,
 } from "@/constants/theme";
 import { useToast } from "@/hooks/useToast";
-import {
-  onDeleteApprovalService,
-  onRejectApprovalService,
-  onSubmitApprovalService,
-} from "@/services/approval.services";
+import { onDeleteApprovalService } from "@/services/approval.services";
 import {
   completeOrderService,
   getDetailOrdersService,
   getOrderTimelineService,
 } from "@/services/orders.services";
 import { useConfirmStore } from "@/stores/confirm.store";
-import { useInputModalStore } from "@/stores/input.store";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import {
@@ -72,6 +65,7 @@ import {
   Linking,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -107,34 +101,45 @@ const TransaksiDetail = () => {
   const { id } = useLocalSearchParams();
   const toast = useToast();
   const showConfirm = useConfirmStore((s) => s.show);
-  const showInput = useInputModalStore((s) => s.showInput);
 
   const [order, setOrder] = useState<any>(null);
   const [timeline, setTimeline] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [acting, setActing] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const data = await getDetailOrdersService(id);
-      setOrder(data ?? null);
+  const load = useCallback(
+    async (showSpinner = true) => {
+      if (showSpinner) setLoading(true);
+      setError("");
       try {
-        const tl = await getOrderTimelineService(id, { current: null });
-        const evs = tl?.events ?? (Array.isArray(tl) ? tl : tl?.data) ?? [];
-        setTimeline(evs);
-      } catch {
-        setTimeline([]);
+        const data = await getDetailOrdersService(id);
+        setOrder(data ?? null);
+        try {
+          const tl = await getOrderTimelineService(id, { current: null });
+          const evs = tl?.events ?? (Array.isArray(tl) ? tl : tl?.data) ?? [];
+          setTimeline(evs);
+        } catch {
+          setTimeline([]);
+        }
+      } catch (err) {
+        setError(String(err instanceof Error ? err.message : err));
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError(String(err instanceof Error ? err.message : err));
+    },
+    [id]
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await load(false);
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
-  }, [id]);
+  }, [load]);
 
   useEffect(() => {
     load();
@@ -143,9 +148,6 @@ const TransaksiDetail = () => {
   const items: any[] = useMemo(() => order?.items ?? [], [order?.items]);
   const status = order?.status;
   const isPending = status === "Menunggu Konfirmasi";
-  const waitingAdminSo = status === "Diproses Sales";
-  const isTerminal =
-    status === "Selesai" || status === "Ditolak" || status === "Reject";
   const canDeleteItem = isPending && items.length > 1;
 
   // Real invoice once the order is being fulfilled; otherwise a proforma.
@@ -166,48 +168,6 @@ const TransaksiDetail = () => {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const toggleGroup = (key: string) =>
     setOpenGroups((p) => ({ ...p, [key]: !p[key] }));
-
-  const openChat = () =>
-    router.push({ pathname: "/notifikasi/[id]", params: { id: String(id) } });
-
-  const doApprove = async () => {
-    setActing(true);
-    try {
-      await onSubmitApprovalService(id);
-      toast.success("Berhasil", "Pesanan di-approve.");
-      await load();
-    } catch (err) {
-      toast.error("Gagal", String(err instanceof Error ? err.message : err));
-    } finally {
-      setActing(false);
-    }
-  };
-
-  const doReject = () => {
-    showInput({
-      title: "Tolak Pesanan",
-      placeholder: "Alasan penolakan...",
-      onConfirm: async (reason: string) => {
-        if (!reason?.trim()) {
-          toast.warning("Perhatian", "Masukkan alasan penolakan.");
-          return;
-        }
-        setActing(true);
-        try {
-          await onRejectApprovalService(id, reason.trim());
-          toast.success("Berhasil", "Pesanan ditolak.");
-          await load();
-        } catch (err) {
-          toast.error(
-            "Gagal",
-            String(err instanceof Error ? err.message : err)
-          );
-        } finally {
-          setActing(false);
-        }
-      },
-    });
-  };
 
   // Selesaikan pesanan Dikirim → POST /sales/orders/:id/complete. SN masuk ke
   // stock sales, bisa langsung dijual via menu Scan.
@@ -333,22 +293,18 @@ const TransaksiDetail = () => {
           paddingHorizontal: SPACE_16,
           paddingBottom: 150,
         }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {/* ORDER SUMMARY */}
         <View style={[styles.cardContainer]}>
           <View style={[rowCenter, { alignItems: "flex-start" }]}>
             <View style={{ flex: 1 }}>
               <Text
-                style={[
-                  blackTextStyle,
-                  { fontFamily: FontFamily.satoshiBold, fontSize: 16 },
-                ]}
+                style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}
               >
                 {order?.orderNumber ?? id}
-              </Text>
-              <Gap height={SPACE_4} />
-              <Text style={[greyTextStyle, { fontSize: 11 }]}>
-                {formatDateTime(order?.createdAt)}
               </Text>
             </View>
             {status ? (
@@ -370,6 +326,11 @@ const TransaksiDetail = () => {
           <Gap height={10} />
           <View style={line} />
           <Gap height={10} />
+          <Row
+            label="Tanggal"
+            value={formatDateTime(order?.createdAt) ?? "—"}
+          />
+          <Gap height={SPACE_8} />
           <Row label="Pengiriman" value={order?.deliveryMethod ?? "—"} />
           <Gap height={SPACE_8} />
           <Row label="Pembayaran" value={order?.paymentMethod ?? "—"} />
@@ -379,17 +340,6 @@ const TransaksiDetail = () => {
               <Row label="Voucher" value={order.voucherCode} />
             </>
           ) : null}
-          <Gap height={10} />
-          <View style={line} />
-          <Gap height={10} />
-          <View style={[rowCenter]}>
-            <Text style={[greyTextStyle, { fontSize: 13 }]}>Total</Text>
-            <Text
-              style={[primaryTextStyle, { fontFamily: FontFamily.satoshiBold }]}
-            >
-              {currencyFormat(order?.total)}
-            </Text>
-          </View>
         </View>
 
         {/* CUSTOMER */}
@@ -915,70 +865,6 @@ const TransaksiDetail = () => {
           <ChevronRight size={20} color={greyColor} />
         </Pressable>
       </ScrollView>
-
-      {/* FOOTER */}
-      <View style={[shadow, styles.footer]}>
-        {isPending ? (
-          <View style={styles.footerRow}>
-            <View style={{ width: "47%" }}>
-              <Button
-                title="Reject"
-                titleColor={primaryColor}
-                bgColor={"transparent"}
-                border={1}
-                borderColor={primaryColor}
-                disabled={acting}
-                onPress={doReject}
-              />
-            </View>
-            <View style={{ width: "47%" }}>
-              <Button
-                title={acting ? "Memproses..." : "Approve"}
-                disabled={acting}
-                onPress={doApprove}
-              />
-            </View>
-          </View>
-        ) : waitingAdminSo ? (
-          <View style={styles.waitingContainer}>
-            <Text
-              style={[
-                blueTextStyle,
-                {
-                  fontFamily: FontFamily.satoshiMedium,
-                  fontSize: 12,
-                  textAlign: "center",
-                },
-              ]}
-            >
-              Sudah di-approve — menunggu Admin SO
-            </Text>
-          </View>
-        ) : isTerminal ? (
-          <Button title="Chat" onPress={openChat} />
-        ) : (
-          <View style={styles.footerRow}>
-            <View style={{ width: "47%" }}>
-              <Button
-                title="Chat"
-                titleColor={primaryColor}
-                bgColor={"transparent"}
-                border={1}
-                borderColor={primaryColor}
-                onPress={openChat}
-              />
-            </View>
-            <View style={{ width: "47%" }}>
-              <Button
-                title="Selesaikan Order"
-                onPress={() =>
-                  router.push({ pathname: "/konfirmasi-order", params: { id } })
-                }
-              />
-            </View>
-          </View>
-        )}
-      </View>
     </LinearGradient>
   );
 };
@@ -1118,7 +1004,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: bgColor,
+    backgroundColor: whiteColor,
     alignItems: "center",
     justifyContent: "center",
   },
