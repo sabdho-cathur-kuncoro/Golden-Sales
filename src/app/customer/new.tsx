@@ -13,6 +13,9 @@ import {
   redStrokeColor,
   screen,
   SPACE_16,
+  SPACE_24,
+  SPACE_4,
+  SPACE_48,
   SPACE_8,
   strokeColor,
   whiteColor,
@@ -43,6 +46,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { isAndroid } from "../../../utils/platform";
 
 // Border color reflects availability state (neutral / valid / taken).
 const borderForStatus = (status: AvailabilityStatus) =>
@@ -439,8 +443,8 @@ const styles = StyleSheet.create({
   footer: {
     backgroundColor: whiteColor,
     paddingHorizontal: SPACE_16,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingTop: SPACE_4,
+    paddingBottom: isAndroid ? SPACE_48 : SPACE_24,
     borderTopWidth: 1,
     borderTopColor: strokeColor,
   },

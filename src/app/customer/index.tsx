@@ -371,10 +371,11 @@ const Customer = () => {
             </View>
           }
         />
-        <AnimatedPressable onPress={() => router.push("/customer/new")}>
-          <View style={[shadow, styles.FAB]}>
-            <Plus size={24} color={whiteColor} />
-          </View>
+        <AnimatedPressable
+          onPress={() => router.push("/customer/new")}
+          style={[shadow, styles.FAB]}
+        >
+          <Plus size={24} color={whiteColor} />
         </AnimatedPressable>
       </View>
     </LinearGradient>
@@ -474,7 +475,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "absolute",
-    bottom: 30,
+    bottom: 56,
     right: 20,
     backgroundColor: primaryColor,
     borderWidth: 0,

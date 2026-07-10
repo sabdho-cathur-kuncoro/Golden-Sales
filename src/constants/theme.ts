@@ -6,6 +6,7 @@
 import "@/global.css";
 
 import { Platform } from "react-native";
+import { isAndroid } from "../../utils/platform";
 
 export const Colors = {
   light: {
@@ -59,6 +60,7 @@ export const SPACE_8 = 8;
 export const SPACE_16 = 16;
 export const SPACE_24 = 24;
 export const SPACE_32 = 32;
+export const SPACE_40 = 40;
 export const SPACE_48 = 48;
 export const SPACE_64 = 64;
 
@@ -209,7 +211,8 @@ export const footerStyle = {
   width: "100%",
   alignItems: "center",
   paddingHorizontal: SPACE_16,
-  paddingBottom: SPACE_24,
+  paddingTop: SPACE_8,
+  paddingBottom: isAndroid ? SPACE_48 : SPACE_16,
   minHeight: 96,
 } as const;
 

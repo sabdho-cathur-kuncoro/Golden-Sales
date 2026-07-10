@@ -149,7 +149,7 @@ const DetailSection = () => {
               <TextInput
                 placeholder="Ketik pesan..."
                 placeholderTextColor={greyColor}
-                style={[blackTextStyle, { height: 50 }]}
+                style={[blackTextStyle]}
               />
             </View>
             <View style={styles.btnWrapper}>
@@ -193,7 +193,6 @@ const styles = StyleSheet.create({
   },
   btnWrapper: {
     width: 50,
-    height: 50,
     borderRadius: 50,
     overflow: "hidden",
   },

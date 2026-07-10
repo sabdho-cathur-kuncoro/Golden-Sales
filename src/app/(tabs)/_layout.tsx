@@ -7,7 +7,6 @@ import {
   FontFamily,
   pinkColor,
   primaryColor,
-  SPACE_16,
   SPACE_8,
   strokeColor,
   tabBarColor,
@@ -25,6 +24,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { isAndroid } from "../../../utils/platform";
 
 type TabButtonProps = {
   icon: string;
@@ -61,7 +61,7 @@ function TabButton({ icon, label, focused, ...props }: TabButtonProps) {
             end={{ x: 0.7, y: 1 }}
             style={styles.FAB}
           >
-            <ScanQrCode width={32} height={32} color={whiteColor} />
+            <ScanQrCode width={30} height={30} color={whiteColor} />
           </LinearGradient>
           <Text style={[styles.label, styles.fabLabel]}>{label}</Text>
         </View>
@@ -114,7 +114,7 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: [styles.tabBar, { minHeight: 96 }],
+        tabBarStyle: [styles.tabBar, { height: isAndroid ? 96 : 88 }],
       }}
     >
       <Tabs.Screen
@@ -196,8 +196,8 @@ const styles = StyleSheet.create({
   buttonWrapper: {
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: SPACE_16,
-    paddingBottom: SPACE_16,
+    paddingTop: isAndroid ? 12 : SPACE_8,
+    paddingBottom: isAndroid ? 14 : SPACE_8,
   },
   label: {
     fontSize: 12,
@@ -210,9 +210,9 @@ const styles = StyleSheet.create({
   },
   FAB: {
     position: "absolute",
-    bottom: 6,
-    width: 64,
-    height: 64,
+    bottom: isAndroid ? -4 : -12,
+    width: 56,
+    height: 56,
     borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
@@ -221,6 +221,6 @@ const styles = StyleSheet.create({
 
   fabLabel: {
     position: "absolute",
-    bottom: -24,
+    bottom: isAndroid ? -28 : -32,
   },
 });

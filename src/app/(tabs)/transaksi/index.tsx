@@ -316,15 +316,17 @@ const Transaksi = () => {
             </View>
             <Gap width={10} />
             <AnimatedPressable onPress={onOpenFilter}>
-              <LinearGradient
-                colors={[pinkColor, primaryColor]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.filterContainer}
-              >
-                <ListFilter size={18} color={whiteColor} />
+              <View>
+                <LinearGradient
+                  colors={[pinkColor, primaryColor]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.filterContainer}
+                >
+                  <ListFilter size={18} color={whiteColor} />
+                </LinearGradient>
                 {isFilterActive ? <View style={[styles.dotFilter]} /> : null}
-              </LinearGradient>
+              </View>
             </AnimatedPressable>
           </View>
           <Gap height={SPACE_16} />
@@ -581,6 +583,7 @@ const styles = StyleSheet.create({
     top: -2,
     right: -2,
     backgroundColor: lightBlueColor,
+    zIndex: 99,
   },
   cartDot: {
     position: "absolute",

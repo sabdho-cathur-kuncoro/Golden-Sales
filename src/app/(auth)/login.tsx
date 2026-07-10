@@ -33,7 +33,7 @@ const Login = () => {
 
   useEffect(() => {
     if (__DEV__) {
-      setUsername("agus.rianto@golden.com");
+      setUsername("ryan.juniansyah@golden.com");
       setPassword("P@ssw0rd");
     }
   }, []);
@@ -137,6 +137,7 @@ const Login = () => {
             label="Password"
             placeholderVisible="Masukkan password"
             placeholderTextColor={greyColor}
+            onSubmitEditing={onLogin}
           />
           <Gap height={16} />
           <TouchableOpacity

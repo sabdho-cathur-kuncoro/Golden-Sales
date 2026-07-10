@@ -136,14 +136,12 @@ const Home = () => {
         {/* WELCOME */}
         <View style={[rowCenter, paddingH, { minHeight: height * 0.08 }]}>
           <View style={{ width: "49%" }}>
-            <Text style={[whiteTextStyle, { fontSize: 16 }]}>
-              Selamat Datang,
-            </Text>
+            <Text style={[whiteTextStyle]}>Selamat Datang,</Text>
             <Gap height={SPACE_4} />
             <Text
               style={[
                 whiteTextStyle,
-                { fontSize: 24, fontFamily: FontFamily.satoshiBold },
+                { fontSize: 18, fontFamily: FontFamily.satoshiBold },
               ]}
             >
               {user?.fullName ?? "-"}

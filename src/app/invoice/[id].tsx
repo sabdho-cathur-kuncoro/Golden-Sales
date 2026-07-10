@@ -2,6 +2,7 @@ import { FocusAwareStatusBar, Gap, GradientButton } from "@/components/ui";
 import {
   blackColor,
   blackTextStyle,
+  darkPrimaryColor,
   FontFamily,
   greenColor,
   greyTextStyle,
@@ -14,8 +15,11 @@ import {
   screen,
   shadow,
   SPACE_16,
+  SPACE_24,
+  SPACE_48,
   SPACE_8,
   whiteColor,
+  whiteTextStyle,
   whiteThirdColor,
 } from "@/constants/theme";
 import { useToast } from "@/hooks/useToast";
@@ -30,8 +34,8 @@ import { printToFileAsync as htmlToPdf } from "expo-print";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Sharing from "expo-sharing";
 import {
-  ArrowLeft,
   Briefcase,
+  ChevronLeft,
   Download,
   Hash,
   Share2,
@@ -50,6 +54,7 @@ import {
 import { currencyFormat } from "../../../utils/currencyFormat";
 import { formatDate } from "../../../utils/days";
 import { groupOrderItems } from "../../../utils/orderItems";
+import { isAndroid } from "../../../utils/platform";
 
 // Statuses where the doc is a real invoice (post Admin-SO), else a proforma.
 const FINAL_STATUSES = [
@@ -424,8 +429,13 @@ const InvoiceScreen = () => {
   const voucherDiscount = Math.abs(num(order.discount));
 
   return (
-    <View style={[screen, { backgroundColor: whiteColor }]}>
-      <FocusAwareStatusBar barStyle={"dark-content"} />
+    <LinearGradient
+      colors={[darkPrimaryColor, primaryColor]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.7, y: 1 }}
+      style={[screen]}
+    >
+      <FocusAwareStatusBar barStyle={"light-content"} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -434,29 +444,29 @@ const InvoiceScreen = () => {
           style={styles.iconBtn}
           hitSlop={6}
         >
-          <ArrowLeft size={20} color={blackColor} />
+          <ChevronLeft size={20} color={whiteColor} />
         </Pressable>
-        <Text style={[blackTextStyle, styles.headerTitle]}>{docLabel}</Text>
+        <Text style={[whiteTextStyle, styles.headerTitle]}>{docLabel}</Text>
         <Pressable
           onPress={handleShare}
-          style={[styles.iconBtn, { backgroundColor: pinkSecondaryColor }]}
+          style={[styles.iconContainer]}
           hitSlop={6}
         >
-          <Share2 size={18} color={primaryColor} />
+          <Share2 size={18} color={whiteColor} />
         </Pressable>
         <Gap width={SPACE_8} />
         <Pressable
           onPress={handleDownload}
-          style={[styles.iconBtn, { backgroundColor: pinkSecondaryColor }]}
+          style={[styles.iconContainer]}
           hitSlop={6}
         >
-          <Download size={18} color={primaryColor} />
+          <Download size={18} color={whiteColor} />
         </Pressable>
       </View>
 
       <ScrollView
         style={{ flex: 1, backgroundColor: whiteThirdColor }}
-        contentContainerStyle={{ padding: 12, paddingBottom: 110 }}
+        contentContainerStyle={{ padding: 12, paddingBottom: 120 }}
       >
         <View style={[styles.card, shadow]}>
           {/* Gradient band */}
@@ -791,7 +801,7 @@ const InvoiceScreen = () => {
           />
         </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -829,7 +839,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: SPACE_16,
     paddingVertical: 12,
-    backgroundColor: whiteColor,
+    backgroundColor: "transparent",
     borderBottomWidth: 1,
     borderBottomColor: whiteThirdColor,
   },
@@ -1026,7 +1036,7 @@ const styles = StyleSheet.create({
     backgroundColor: whiteColor,
     paddingHorizontal: SPACE_16,
     paddingTop: 12,
-    paddingBottom: 24,
+    paddingBottom: isAndroid ? SPACE_48 : SPACE_24,
   },
   shareBtn: {
     flex: 1,
@@ -1037,5 +1047,13 @@ const styles = StyleSheet.create({
     borderColor: primaryColor,
     borderRadius: 12,
     paddingVertical: 12,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

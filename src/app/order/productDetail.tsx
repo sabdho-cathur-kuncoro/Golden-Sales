@@ -43,6 +43,7 @@ import {
 import useOrderDetailController from "@/hooks/useOrderDetailController";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Check,
@@ -198,9 +199,11 @@ const OrderProductDetail = () => {
           Detail Produk
         </Text>
       </View>
-      <ScrollView
+      <KeyboardAwareScrollView
         style={[mainContent]}
         contentContainerStyle={[paddingScroll, { paddingBottom: 140 }]}
+        bottomOffset={SPACE_48}
+        keyboardShouldPersistTaps="handled"
       >
         {/* GALLERY CARD */}
         <View style={[card]}>
@@ -603,7 +606,7 @@ const OrderProductDetail = () => {
               "Product yang di beli tidak bisa dikembalikan"}
           </Text>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* FOOTER */}
       <View style={[shadow, styles.footer]}>
