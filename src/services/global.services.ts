@@ -1,4 +1,4 @@
-import { APIBEARER } from "@/constants/API";
+import { APIBASIC, APIBEARER } from "@/constants/API";
 import { getApiErrorMessage } from "@/utils/apiError";
 
 export async function getWarehousesService() {
@@ -42,6 +42,24 @@ export async function getSlidersService() {
 export async function getFlashSaleService() {
   try {
     const res = await APIBEARER.get("/flash-sales");
+    const status = res.status;
+    const dataRes = res.data;
+    if (status === 200) {
+      return dataRes;
+    }
+  } catch (err: any) {
+    if (__DEV__) {
+      console.log(err);
+    }
+    throw new Error(getApiErrorMessage(err));
+  }
+}
+
+export async function getAppVersionService(key: string) {
+  try {
+    const res = await APIBASIC.get(`/getVersionApp`, {
+      params: { Field_key: key },
+    });
     const status = res.status;
     const dataRes = res.data;
     if (status === 200) {
