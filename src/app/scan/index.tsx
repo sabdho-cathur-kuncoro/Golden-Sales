@@ -21,6 +21,7 @@ import {
   screen,
   SPACE_16,
   SPACE_32,
+  SPACE_48,
   SPACE_8,
   whiteColor,
   whiteTextStyle,
@@ -54,6 +55,7 @@ import {
 } from "react-native";
 import { Camera } from "react-native-vision-camera";
 import { currencyFormat } from "../../../utils/currencyFormat";
+import { isAndroid } from "../../../utils/platform";
 
 const Scan = () => {
   const {
@@ -479,7 +481,7 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: SPACE_16,
     paddingTop: 12,
-    paddingBottom: SPACE_32,
+    paddingBottom: isAndroid ? SPACE_48 : SPACE_32,
     backgroundColor: bgColor,
     borderTopWidth: 1,
     borderTopColor: lineColor,

@@ -40,6 +40,7 @@ const useScanController = () => {
     groups: [],
   });
   const [stockLoading, setStockLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [stockErr, setStockErr] = useState<string>("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -60,8 +61,11 @@ const useScanController = () => {
   const fps = Math.min(format?.maxFps ?? 1, 30);
   const isFocused = useIsFocused();
 
-  const loadStock = useCallback(async () => {
-    setStockLoading(true);
+  // silent=true → pull-to-refresh: keep current list visible, drive the
+  // RefreshControl spinner instead of the full "Memuat stok…" placeholder.
+  const loadStock = useCallback(async (silent = false) => {
+    if (silent) setRefreshing(true);
+    else setStockLoading(true);
     setStockErr("");
     try {
       const res = await getSellStockService();
@@ -69,9 +73,12 @@ const useScanController = () => {
     } catch (err: any) {
       setStockErr(err?.message ?? "Gagal memuat stok");
     } finally {
-      setStockLoading(false);
+      if (silent) setRefreshing(false);
+      else setStockLoading(false);
     }
   }, []);
+
+  const onRefresh = useCallback(() => loadStock(true), [loadStock]);
 
   useEffect(() => {
     loadStock();
@@ -107,7 +114,7 @@ const useScanController = () => {
       setStatusMsg(`Memvalidasi ${c}…`);
       try {
         const res = await checkSellService(c);
-        if (!res?.success || !res?.item?.sn) {
+        if (!res?.success) {
           setStatusKind("err");
           setStatusMsg(res?.message || "SN tidak valid.");
           toast.warning("SN tidak valid", res?.message || `SN ${c} ditolak.`);
@@ -118,8 +125,7 @@ const useScanController = () => {
         const k = norm(sn);
         // Cache resolusi QR-mentah → kanonik untuk short-circuit scan berikutnya.
         resolvedSn.current.set(raw, k);
-        // Guard kedua di dalam updater — dua SN bisa validasi konkuren sebelum
-        // salah satu commit, jadi pre-check saja tak cukup. Pakai SN kanonik.
+        // Guard kedua di dalam updater — pakai SN kanonik dari server.
         let added = false;
         setCart((prev) => {
           if (prev.some((x) => norm(x.qr) === k)) return prev;
@@ -281,6 +287,8 @@ const useScanController = () => {
     stock,
     stockLoading,
     stockErr,
+    refreshing,
+    onRefresh,
     expanded,
     toggleGroup,
     device,
