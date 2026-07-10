@@ -62,14 +62,13 @@ export const ensureCameraPermission = async (): Promise<boolean> => {
   const status = await Camera.getCameraPermissionStatus();
   if (status === "granted") return true;
 
-  // hanya not-determined yang masih bisa memunculkan system prompt
-  if (status === "not-determined") {
-    const newStatus = await Camera.requestCameraPermission();
-    return newStatus === "granted";
-  }
-
-  // denied / restricted → blocked, biar caller yang arahkan ke settings
-  return false;
+  // Selalu coba request walau status `denied` — vision-camera memanggil
+  // PermissionsAndroid.request / iOS API, jadi OS sendiri yang putuskan apakah
+  // system prompt masih muncul. Kalau ditolak permanen ("Don't ask again"),
+  // request langsung balik `denied` tanpa buka Settings. Ini menghindari user
+  // terpaksa ke Settings manual setelah penolakan pertama.
+  const newStatus = await Camera.requestCameraPermission();
+  return newStatus === "granted";
 };
 
 // ===== Feature flows =====

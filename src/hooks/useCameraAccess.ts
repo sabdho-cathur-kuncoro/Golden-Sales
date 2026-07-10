@@ -2,7 +2,6 @@ import { usePermissionStore } from "@/stores/permission.store";
 import { usePrePermissionModal } from "@/stores/prePermission.store";
 import {
   checkCameraPermission,
-  isCameraBlocked,
   smartPermissionRequest,
 } from "../../utils/permissions";
 
@@ -25,7 +24,6 @@ export const useCameraAccess = () => {
         onConfirm: async () => {
           const result = await smartPermissionRequest({
             requestFn: requestCamera,
-            isBlocked: isCameraBlocked,
           });
           resolve(result);
         },
