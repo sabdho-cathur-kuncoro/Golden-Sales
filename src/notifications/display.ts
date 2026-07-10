@@ -29,6 +29,7 @@ export async function displayFcmMessage(
       channelId,
       pressAction: { id: "default", launchActivity: "default" },
       smallIcon: "ic_notification", // falls back to app icon if absent
+      color: "#B20605",
     },
     ios: {
       // let iOS manage the badge from the server-side aps.badge if present
