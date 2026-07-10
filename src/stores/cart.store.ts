@@ -79,6 +79,8 @@ const buildLine = (product: any, quantity: number, serials: any[]) => ({
   imageBase64: product?.imageBase64,
   imageContentType: product?.imageContentType,
   promos: product?.promos ?? [],
+  // Available stock (null = unknown, e.g. legacy lines) — used to cap qty.
+  stock: product?.stock ?? null,
   quantity,
   serials,
 });

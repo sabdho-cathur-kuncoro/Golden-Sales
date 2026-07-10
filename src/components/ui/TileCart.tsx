@@ -57,7 +57,11 @@ function TileCart({
 
   const commitQty = (text: string) => {
     const n = parseInt(text, 10);
-    onChangeQty?.(Number.isFinite(n) ? n : 0);
+    const accepted = onChangeQty?.(Number.isFinite(n) ? n : 0);
+    // Rejected (e.g. over stock) → store qty unchanged, sync effect won't fire.
+    // Reset the field to the store value so it isn't left stale (typed 10 with
+    // stock 4 → snap back to the actual qty).
+    if (accepted === false) setQty(String(qtyNum));
   };
 
   return (
@@ -81,6 +85,11 @@ function TileCart({
             >
               {item?.productName ?? "-"}
             </Text>
+            {typeof item?.stock === "number" ? (
+              <Text style={[greyTextStyle, { fontSize: 11 }]}>
+                Stok: {item.stock}
+              </Text>
+            ) : null}
           </View>
           <View style={{ width: "14%", alignItems: "flex-end" }}>
             <AnimatedPressable onPress={onDelete}>

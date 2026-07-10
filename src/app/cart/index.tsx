@@ -19,18 +19,22 @@ import {
   screen,
   shadow,
   SPACE_16,
+  SPACE_24,
+  SPACE_48,
   SPACE_8,
   whiteColor,
   whiteTextStyle,
 } from "@/constants/theme";
 import useCartController from "@/hooks/useCartController";
 import { LinearGradient } from "expo-linear-gradient";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { router } from "expo-router";
 import { Check, ChevronLeft, Info } from "lucide-react-native";
 import React from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { currencyFormat } from "../../../utils/currencyFormat";
 import { handleBack } from "../../../utils/helper";
+import { isAndroid } from "../../../utils/platform";
 
 const Cart = () => {
   const {
@@ -133,39 +137,42 @@ const Cart = () => {
           Keranjang
         </Text>
       </View>
-      <View style={[mainContent]}>
-        <FlatList
-          data={items}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmptyComponent}
-          onRefresh={onRefresh}
-          refreshing={refreshing}
-          contentContainerStyle={[paddingScroll, { paddingBottom: 120 }]}
-        />
-      </View>
-      {items.length > 0 && (
-        <View style={[shadow, row, styles.footer]}>
-          <View style={{ width: "39%" }}>
-            <Text style={[blackTextStyle]}>Total Harga</Text>
-            <Text
-              style={[
-                blackTextStyle,
-                { fontSize: 16, fontFamily: FontFamily.satoshiBold },
-              ]}
-            >
-              {currencyFormat(selectedTotal)}
-            </Text>
-          </View>
-          <View style={{ width: "60%" }}>
-            <Button
-              title={`Checkout (${selectedItems.length})`}
-              onPress={handleCheckout}
-            />
-          </View>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+        <View style={[mainContent]}>
+          <FlatList
+            data={items}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            ListHeaderComponent={renderHeader}
+            ListEmptyComponent={renderEmptyComponent}
+            onRefresh={onRefresh}
+            refreshing={refreshing}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={[paddingScroll, { paddingBottom: 120 }]}
+          />
         </View>
-      )}
+        {items.length > 0 && (
+          <View style={[shadow, row, styles.footer]}>
+            <View style={{ width: "39%" }}>
+              <Text style={[blackTextStyle]}>Total Harga</Text>
+              <Text
+                style={[
+                  blackTextStyle,
+                  { fontSize: 16, fontFamily: FontFamily.satoshiBold },
+                ]}
+              >
+                {currencyFormat(selectedTotal)}
+              </Text>
+            </View>
+            <View style={{ width: "60%" }}>
+              <Button
+                title={`Checkout (${selectedItems.length})`}
+                onPress={handleCheckout}
+              />
+            </View>
+          </View>
+        )}
+      </KeyboardAvoidingView>
     </LinearGradient>
   );
 };
@@ -206,7 +213,7 @@ const styles = StyleSheet.create({
   footer: {
     backgroundColor: whiteColor,
     paddingHorizontal: SPACE_16,
-    paddingBottom: 40,
+    paddingBottom: isAndroid ? SPACE_48 : SPACE_24,
     paddingVertical: 10,
   },
 });

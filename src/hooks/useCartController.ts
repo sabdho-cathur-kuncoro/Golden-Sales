@@ -20,7 +20,12 @@ const toProduct = (item: any) => ({
   imageBase64: item.imageBase64,
   imageContentType: item.imageContentType,
   promos: item.promos,
+  stock: item.stock,
 });
+
+/** True when requested qty exceeds a known stock (null/undefined = uncapped). */
+const overStock = (item: any, qty: number) =>
+  typeof item?.stock === "number" && qty > item.stock;
 
 /**
  * Cart screen controller — owns all selection/checkout business logic, keeping
@@ -162,9 +167,22 @@ const useCartController = () => {
     [selectedItems, lineInfo]
   );
 
+  const capWarn = useCallback(
+    (item: any) =>
+      toast.warning(
+        "Melebihi stok",
+        `Jumlah melebihi stok yang tersedia (stok: ${item.stock}).`
+      ),
+    [toast]
+  );
+
   const onInc = useCallback(
-    (item: any) => setQty(toProduct(item), (item.quantity ?? 0) + 1),
-    [setQty]
+    (item: any) => {
+      const next = (item.quantity ?? 0) + 1;
+      if (overStock(item, next)) return capWarn(item);
+      setQty(toProduct(item), next);
+    },
+    [setQty, capWarn]
   );
   const onDec = useCallback(
     (item: any) => {
@@ -175,9 +193,17 @@ const useCartController = () => {
     },
     [setQty]
   );
+  // Returns false when rejected (over stock) so the tile can reset its field.
   const onChangeQty = useCallback(
-    (item: any, qty: number) => setQty(toProduct(item), qty),
-    [setQty]
+    (item: any, qty: number): boolean => {
+      if (overStock(item, qty)) {
+        capWarn(item);
+        return false;
+      }
+      setQty(toProduct(item), qty);
+      return true;
+    },
+    [setQty, capWarn]
   );
 
   const handleDelete = useCallback(

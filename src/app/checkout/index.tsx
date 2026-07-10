@@ -54,14 +54,8 @@ import {
   X,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { currencyFormat } from "../../../utils/currencyFormat";
 
 const DELIVERY_OPTIONS = ["Ambil Sendiri"];
@@ -78,7 +72,59 @@ const toProduct = (it: any) => ({
   imageBase64: it?.imageBase64,
   imageContentType: it?.imageContentType,
   promos: it?.promos ?? [],
+  stock: it?.stock,
 });
+
+/**
+ * Editable qty stepper for a non-serial line. Holds a local text draft; on
+ * commit calls `onCommit(n)` and, if rejected (over stock / invalid), resets
+ * the field to the store value `q` so it never shows a stale number.
+ */
+function LineQty({
+  q,
+  onDec,
+  onInc,
+  onCommit,
+}: {
+  q: number;
+  onDec: () => void;
+  onInc: () => void;
+  onCommit: (n: number) => boolean;
+}) {
+  const [text, setText] = useState(String(q));
+  useEffect(() => setText(String(q)), [q]);
+
+  const commit = (t: string) => {
+    const n = parseInt(t, 10);
+    const accepted = onCommit(Number.isFinite(n) ? n : 0);
+    if (!accepted) setText(String(q));
+  };
+
+  return (
+    <View style={styles.qtyContainer}>
+      <AnimatedPressable onPress={onDec}>
+        <Minus size={20} color={primaryColor} />
+      </AnimatedPressable>
+      <TextInput
+        value={text}
+        onChangeText={setText}
+        onEndEditing={(e) => commit(e.nativeEvent.text)}
+        keyboardType="number-pad"
+        style={[
+          blackTextStyle,
+          {
+            minWidth: "18%",
+            textAlign: "center",
+            fontFamily: FontFamily.satoshiBold,
+          },
+        ]}
+      />
+      <AnimatedPressable onPress={onInc}>
+        <Plus size={20} color={primaryColor} />
+      </AnimatedPressable>
+    </View>
+  );
+}
 
 const Checkout = () => {
   const toast = useToast();
@@ -128,6 +174,24 @@ const Checkout = () => {
       onConfirm: async () => removeSerial(pid, sn),
     });
 
+  // Set a non-serial line qty, capped at its known stock (like productDetail).
+  // Returns false when rejected so the qty field can reset instead of showing
+  // a stale value. Empty/0 keeps the current qty (removal is via trash/minus).
+  const changeQty = (it: any, qty: number): boolean => {
+    if (typeof it?.stock === "number" && qty > it.stock) {
+      toast.warning(
+        "Melebihi stok",
+        `Jumlah melebihi stok yang tersedia (stok: ${it.stock}).`
+      );
+      return false;
+    }
+    if (qty <= 0) return false;
+    setQty(toProduct(it), qty);
+    return true;
+  };
+
+  const incLine = (it: any) => changeQty(it, lineUnits(it) + 1);
+
   const discount = voucherInfo?.valid ? Number(voucherInfo.discount) || 0 : 0;
   const total = Math.max(0, netSubtotal - discount);
 
@@ -156,19 +220,7 @@ const Checkout = () => {
     };
   }, [voucher, subtotal]);
 
-  const submit = async () => {
-    if (items.length === 0) return;
-    if (!warehouse?.id) {
-      toast.warning(
-        "Gudang belum dipilih",
-        "Kembali ke halaman produk untuk pilih gudang."
-      );
-      return;
-    }
-    if (voucher.trim() && voucherInfo && !voucherInfo.valid) {
-      toast.warning("Voucher tidak valid", "Hapus atau perbaiki kode voucher.");
-      return;
-    }
+  const doSubmit = async () => {
     setLoading(true);
     try {
       const payload = {
@@ -211,6 +263,29 @@ const Checkout = () => {
     }
   };
 
+  // Validate, then ask for confirmation before firing the order.
+  const submit = () => {
+    if (items.length === 0) return;
+    if (!warehouse?.id) {
+      toast.warning(
+        "Gudang belum dipilih",
+        "Kembali ke halaman produk untuk pilih gudang."
+      );
+      return;
+    }
+    if (voucher.trim() && voucherInfo && !voucherInfo.valid) {
+      toast.warning("Voucher tidak valid", "Hapus atau perbaiki kode voucher.");
+      return;
+    }
+    show({
+      title: "Buat Pesanan?",
+      message: `Buat pesanan ${items.length} produk senilai ${currencyFormat(
+        total
+      )}?`,
+      onConfirm: doSubmit,
+    });
+  };
+
   const renderLine = (it: any) => {
     const hasSerials = it?.serials && it.serials.length > 0;
     const info = lineInfo(it);
@@ -227,6 +302,11 @@ const Checkout = () => {
             >
               {it.productName}
             </Text>
+            {typeof it?.stock === "number" ? (
+              <Text style={[greyTextStyle, { fontSize: 11 }]}>
+                Stok: {it.stock}
+              </Text>
+            ) : null}
             {info.promo ? (
               <>
                 <Gap height={SPACE_4} />
@@ -335,26 +415,14 @@ const Checkout = () => {
                 <Trash2 size={16} color={redColor} />
               </View>
             </AnimatedPressable>
-            <View style={styles.qtyContainer}>
-              <AnimatedPressable
-                onPress={() =>
-                  q - 1 <= 0 ? confirmRemove(it) : setQty(toProduct(it), q - 1)
-                }
-              >
-                <Minus size={20} color={primaryColor} />
-              </AnimatedPressable>
-              <Text
-                style={[
-                  blackTextStyle,
-                  { fontFamily: FontFamily.satoshiBold, fontSize: 16 },
-                ]}
-              >
-                {q}
-              </Text>
-              <AnimatedPressable onPress={() => setQty(toProduct(it), q + 1)}>
-                <Plus size={20} color={primaryColor} />
-              </AnimatedPressable>
-            </View>
+            <LineQty
+              q={q}
+              onDec={() =>
+                q - 1 <= 0 ? confirmRemove(it) : setQty(toProduct(it), q - 1)
+              }
+              onInc={() => incLine(it)}
+              onCommit={(n) => changeQty(it, n)}
+            />
           </View>
         )}
       </View>
@@ -389,9 +457,11 @@ const Checkout = () => {
           Rincian Pesanan
         </Text>
       </View>
-      <ScrollView
+      <KeyboardAwareScrollView
         style={{ flex: 1, backgroundColor: bgColor }}
         contentContainerStyle={{ paddingTop: SPACE_16, paddingBottom: 120 }}
+        bottomOffset={SPACE_48}
+        keyboardShouldPersistTaps="handled"
       >
         {/* SALES INFO */}
         <View style={styles.cardContainer}>
@@ -631,7 +701,7 @@ const Checkout = () => {
             </Text>
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View style={[shadow, styles.footer]}>
         <View style={{ width: "49%" }}>

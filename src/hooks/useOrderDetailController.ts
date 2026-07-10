@@ -107,6 +107,8 @@ const useOrderDetailController = (uid: any) => {
       imageBase64: productDetail.imageList?.[0]?.imageBase64,
       imageContentType: productDetail.imageList?.[0]?.contentType,
       promos: productDetail.activePromos || [],
+      // Carry available stock so cart/checkout can cap qty like this screen does.
+      stock,
     };
     if (isKartuPerdana) {
       if (selectedSerials.length === 0) {
