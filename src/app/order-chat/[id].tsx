@@ -12,6 +12,7 @@ import {
   redTextStyle,
   screen,
   SPACE_16,
+  SPACE_48,
   SPACE_8,
   whiteColor,
   whiteTextStyle,
@@ -43,6 +44,7 @@ import {
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { formatDateTime, formatTime } from "../../../utils/days";
+import { isAndroid } from "../../../utils/platform";
 
 const POLL_INTERVAL = 3000; // 3s while screen is focused
 
@@ -399,7 +401,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     paddingHorizontal: SPACE_16,
     paddingTop: 10,
-    paddingBottom: 40,
+    paddingBottom: isAndroid ? SPACE_48 : SPACE_16,
     borderTopWidth: 1,
     borderTopColor: lineColor,
     backgroundColor: whiteColor,

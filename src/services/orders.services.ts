@@ -177,12 +177,10 @@ export async function getOrderMessagesService(orderId: any, since: any) {
 export async function onMessagesOrderService(orderId: any, draft: string) {
   try {
     const body = draft.trim();
-    const res = await APIBEARER.post(`/orders/${orderId}/messages`, {
-      data: body,
-    });
+    const res = await APIBEARER.post(`/orders/${orderId}/messages`, { body });
     const status = res.status;
     const dataRes = res.data;
-    if (status === 200) {
+    if (status >= 200 && status < 300) {
       return dataRes;
     }
   } catch (err: any) {
