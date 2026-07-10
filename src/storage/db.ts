@@ -45,6 +45,11 @@ class Database {
     try {
       const db = await this.open();
       await db.execAsync("PRAGMA journal_mode = WAL;");
+      // WAL allows one writer. Cart/product caches also write from separate
+      // connections opened by `withExclusiveTransactionAsync` (useNewConnection),
+      // so writers contend. Without a busy timeout, an overlapping writer gets
+      // SQLITE_BUSY ("database is locked") instantly — with it, it waits/retries.
+      await db.execAsync("PRAGMA busy_timeout = 5000;");
       await db.execAsync(MIGRATIONS.join("\n"));
     } catch (error) {
       console.error("[DB:init]", error);

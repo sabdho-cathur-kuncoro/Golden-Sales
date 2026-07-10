@@ -21,10 +21,12 @@ export const productsCache = {
       const sqlite = await db.instance();
       const now = Date.now();
 
-      // Exclusive: serializes overlapping writes (mount fetch + pull-refresh +
-      // catalog all trigger upsertMany on the one shared connection). Plain
-      // withTransactionAsync lets a 2nd BEGIN fail → "cannot rollback".
+      // Exclusive txn runs on a SEPARATE connection (useNewConnection). Under
+      // WAL it contends with writes on the shared connection; set busy_timeout
+      // on this connection too so it waits for the write lock instead of
+      // failing with "database is locked".
       await sqlite.withExclusiveTransactionAsync(async (txn) => {
+        await txn.execAsync("PRAGMA busy_timeout = 5000;");
         for (const product of products) {
           await txn.runAsync(
             `INSERT INTO product_cache (id, scope, name, price, raw, updated_at)

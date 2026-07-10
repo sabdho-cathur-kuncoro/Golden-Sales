@@ -31,10 +31,12 @@ export const cartCache = {
       const sqlite = await db.instance();
       const now = Date.now();
 
-      // Exclusive: serializes overlapping cart writes on the one shared
-      // connection (plain withTransactionAsync lets a 2nd BEGIN fail →
-      // "cannot rollback - no transaction is active").
+      // Exclusive txn runs on a SEPARATE connection (useNewConnection). Under
+      // WAL it contends with writes on the shared connection; set busy_timeout
+      // on this connection too so it waits for the write lock instead of
+      // failing with "database is locked".
       await sqlite.withExclusiveTransactionAsync(async (txn) => {
+        await txn.execAsync("PRAGMA busy_timeout = 5000;");
         for (const item of items) {
           await txn.runAsync(
             `INSERT INTO cart (id, product_id, qty, raw, status, updated_at)
@@ -162,10 +164,12 @@ export const cartCache = {
       const sqlite = await db.instance();
       const now = Date.now();
 
-      // Exclusive: serializes overlapping cart writes on the one shared
-      // connection (plain withTransactionAsync lets a 2nd BEGIN fail →
-      // "cannot rollback - no transaction is active").
+      // Exclusive txn runs on a SEPARATE connection (useNewConnection). Under
+      // WAL it contends with writes on the shared connection; set busy_timeout
+      // on this connection too so it waits for the write lock instead of
+      // failing with "database is locked".
       await sqlite.withExclusiveTransactionAsync(async (txn) => {
+        await txn.execAsync("PRAGMA busy_timeout = 5000;");
         await txn.runAsync("DELETE FROM cart;");
         for (const item of items ?? []) {
           await txn.runAsync(
