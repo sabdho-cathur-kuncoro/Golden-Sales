@@ -135,8 +135,15 @@ export default {
       [
         "expo-build-properties",
         {
-          // RN Firebase iOS requires static frameworks to compile
-          ios: { useFrameworks: "static" },
+          // RN Firebase iOS requires static frameworks to compile. Under RN
+          // 0.83's prebuilt React core, each RNFB pod must ALSO be force-linked
+          // static — else its Obj-C files import React headers as clang modules,
+          // hiding the RCT_EXPORT_METHOD macros (implicit-int / "must be imported
+          // from module" build errors). List every @react-native-firebase pod used.
+          ios: {
+            useFrameworks: "static",
+            forceStaticLinking: ["RNFBApp", "RNFBMessaging"],
+          },
           // Notifee `core` AAR lives in a bundled local maven repo (see above).
           android: { extraMavenRepos: [notifeeAndroidLibs] },
         },
