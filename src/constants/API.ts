@@ -1,6 +1,16 @@
 import { useAuthStore } from "@/stores/auth.store";
+import { useToastStore } from "@/stores/toast.store";
 import { create } from "axios";
 import Constants from "expo-constants";
+import { router } from "expo-router";
+import { startNetworkLogging } from "react-native-network-logger";
+import { ENABLE_DEV_TOOLS } from "./flags";
+import { redColor } from "./theme";
+
+// Patch XHR before any axios instance/request so all API traffic is captured.
+if (ENABLE_DEV_TOOLS) {
+  startNetworkLogging({ maxRequests: 200 });
+}
 
 const API_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const bearerUat = Constants.expoConfig!.extra!.BEARER_UAT;
@@ -50,43 +60,89 @@ APIBEARER.interceptors.request.use(
   }
 );
 
+// 401 auto-refresh. Single-flight: the first 401 runs POST /refresh; any other
+// requests that 401 while a refresh is in flight queue up and replay once the
+// new token lands (avoids a refresh stampede). If refresh itself fails, we log
+// out and bounce to /login.
+let isRefreshing = false;
+let pending: ((newToken: string) => void)[] = [];
+
+function setAuthHeader(config: any, token: string) {
+  if (!config.headers) config.headers = {};
+  const headers: any = config.headers;
+  if (typeof headers.set === "function") {
+    headers.set("Authorization", `${Config.BEARER} ${token}`);
+  } else {
+    headers["Authorization"] = `${Config.BEARER} ${token}`;
+  }
+}
+
 APIBEARER.interceptors.response.use(
-  (response: any) => {
-    return response;
-  },
+  (response: any) => response,
   async (error: any) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      //   return refreshToken()
-      //     .then(async (resp: any) => {
-      //       const config = error.config;
-      //       if (resp.code === 200 && resp.message === "Authentication success") {
-      //         await storeData("token", { value: resp.token });
-      //         await storeData("refreshToken", { value: resp.refreshToken });
-      //         config.headers.Authorization = `${Config.BEARER} ${resp.token}`;
-      // // Update token
-      // socketManager.updateAuthToken(resp?.token);
+    const status = error.response?.status;
+    const refreshToken = useAuthStore.getState().refreshToken;
 
-      //         return new Promise((resolve, reject) => {
-      //           axios
-      //             .request(config)
-      //             .then((res: any) => {
-      //               resolve(res);
-      //             })
-      //             .catch((err: any) => {
-      //               reject(err);
-      //             });
-      //         });
-      //       }
-      //     })
-      //     .catch((err: any) => {
-      //       Promise.reject(err);
-      //     });
+    // Only attempt a refresh for a real 401 we haven't already retried, and
+    // only when we actually hold a refresh token.
+    if (
+      status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      !refreshToken
+    ) {
+      return Promise.reject(error);
     }
 
-    return new Promise((resolve, reject) => {
-      reject(error);
-    });
+    // A refresh is already running — wait for it, then replay this request.
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        pending.push((newToken: string) => {
+          originalRequest._retry = true;
+          setAuthHeader(originalRequest, newToken);
+          APIBEARER(originalRequest).then(resolve).catch(reject);
+        });
+      });
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      // APIBASIC (no auth interceptor) → no recursive 401 loop.
+      const res = await APIBASIC.post("/refresh", { refreshToken });
+      const newToken = res.data?.token;
+      const newRefreshToken = res.data?.refreshToken;
+
+      if (!newToken) {
+        throw new Error("Refresh response missing token");
+      }
+
+      await useAuthStore.getState().updateTokens(newToken, newRefreshToken);
+
+      // Release queued requests, then replay the original.
+      pending.forEach((cb) => cb(newToken));
+      pending = [];
+
+      setAuthHeader(originalRequest, newToken);
+      return APIBEARER(originalRequest);
+    } catch (refreshError) {
+      pending = [];
+      await useAuthStore.getState().logout();
+      useToastStore.getState().showToast({
+        title: "Sesi Berakhir",
+        message: "Sesi Anda telah berakhir. Silakan masuk kembali.",
+        icon: "error",
+        color: redColor as string,
+        borderColor: "rgba(248,113,113,0.18)",
+        fromBGColor: "#7F1D1D",
+        toBGColor: "#450A0A",
+      });
+      router.replace("/login");
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );

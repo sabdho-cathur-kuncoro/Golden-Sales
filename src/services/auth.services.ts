@@ -44,9 +44,11 @@ export async function onLoginService(form: any, controller: any) {
     const dataRes = res.data;
     if (status === 200) {
       const token = dataRes?.token;
+      const refreshToken = dataRes?.refreshToken;
       const user = dataRes;
       const dataLogin = {
         token,
+        refreshToken,
         user,
       };
 

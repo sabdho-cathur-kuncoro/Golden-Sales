@@ -5,20 +5,27 @@ import { create } from "zustand";
 type AuthState = {
   user: TypeUser | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   isHydrated: boolean;
 
   // actions
-  login: (data: { token: string; user: any }) => Promise<void>;
+  login: (data: {
+    token: string;
+    refreshToken?: string;
+    user: any;
+  }) => Promise<void>;
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
   setUser: (user: any) => Promise<void>;
+  updateTokens: (token: string, refreshToken: string) => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
   isLoading: true,
   isHydrated: false,
@@ -31,6 +38,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (data?.accessToken) {
         set({
           token: data.accessToken,
+          refreshToken: data.refreshToken ?? null,
           user: data.user,
           isAuthenticated: true,
         });
@@ -43,12 +51,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   // LOGIN
-  login: async ({ token, user }) => {
+  login: async ({ token, refreshToken, user }) => {
     // Set state synchronously first so APIBEARER's request interceptor can read
     // the token immediately (e.g. the post-login background GET /me). Persisting
     // to secure storage is async and must not gate the in-memory session.
     set({
       token,
+      refreshToken: refreshToken ?? null,
       user,
       isAuthenticated: true,
     });
@@ -56,10 +65,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await authStorage.set({
         accessToken: token,
+        refreshToken,
         user,
       });
     } catch (e) {
       console.error("[Auth:login]", e);
+    }
+  },
+
+  // UPDATE TOKENS (after a successful 401 refresh; both tokens rotate)
+  updateTokens: async (token, refreshToken) => {
+    set({ token, refreshToken });
+
+    try {
+      await authStorage.set({
+        accessToken: token,
+        refreshToken,
+        user: get().user as any,
+      });
+    } catch (e) {
+      console.error("[Auth:updateTokens]", e);
     }
   },
 
@@ -94,6 +119,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       set({
         token: null,
+        refreshToken: null,
         user: null,
         isAuthenticated: false,
       });
