@@ -1,4 +1,5 @@
 import { AnimatedPressable, Gap } from "@/components/ui";
+import { ENABLE_DEV_TOOLS } from "@/constants/flags";
 import {
   bgColor,
   blackTextStyle,
@@ -14,10 +15,12 @@ import {
   primaryColor,
   purpleColor,
   redColor,
+  row,
   rowCenter,
   screen,
   SPACE_16,
   SPACE_4,
+  SPACE_8,
   whiteColor,
   whiteSecondaryColor,
   whiteTextStyle,
@@ -26,10 +29,17 @@ import { unsubscribeAllTopics } from "@/notifications/topics";
 import { useAuthStore } from "@/stores/auth.store";
 import { useConfirmStore } from "@/stores/confirm.store";
 import AntDesignIC from "@expo/vector-icons/AntDesign";
+import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { BookOpen, ChevronRight, Lock, LogOut } from "lucide-react-native";
+import {
+  Activity,
+  BookOpen,
+  ChevronRight,
+  Lock,
+  LogOut,
+} from "lucide-react-native";
 import React from "react";
 import { ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
 import { getInitials } from "../../../../utils/helper";
@@ -328,6 +338,48 @@ const Profile = () => {
               </View>
             </View>
           </AnimatedPressable> */}
+          {/* NETWORK LOGS (dev/QA only) */}
+          {ENABLE_DEV_TOOLS && (
+            <AnimatedPressable onPress={() => router.push("/network-logs")}>
+              <View style={[styles.cardContainer, row]}>
+                <View
+                  style={[
+                    {
+                      width: "85%",
+                      flexDirection: "row",
+                      alignItems: "center",
+                    },
+                  ]}
+                >
+                  <View style={styles.tileIconContainer}>
+                    <Activity size={20} color={blueColor} />
+                  </View>
+                  <Gap width={SPACE_16} />
+                  <View>
+                    <Text
+                      style={[
+                        blackTextStyle,
+                        { fontFamily: FontFamily.satoshiBold },
+                      ]}
+                    >
+                      Network Logs
+                    </Text>
+                    <Text style={[greyTextStyle, { fontSize: 12 }]}>
+                      Inspeksi request & response API
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={{
+                    width: "14%",
+                    alignItems: "flex-end",
+                  }}
+                >
+                  <ChevronRight size={18} color={greyColor} />
+                </View>
+              </View>
+            </AnimatedPressable>
+          )}
           {/* LOGOUT */}
           <AnimatedPressable onPress={handleLogout}>
             <View style={[styles.cardContainer, rowCenter]}>
@@ -368,6 +420,9 @@ const Profile = () => {
               </View>
             </View>
           </AnimatedPressable>
+          <Text style={styles.versionText}>
+            Versi {Constants.expoConfig?.version ?? "-"}
+          </Text>
         </ScrollView>
       </View>
     </LinearGradient>
@@ -417,5 +472,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
     alignItems: "center",
     justifyContent: "center",
+  },
+  versionText: {
+    ...greyTextStyle,
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: SPACE_8,
   },
 });
