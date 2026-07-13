@@ -8,6 +8,7 @@ import {
   setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
 import { displayFcmMessage } from "./src/notifications/display";
+import { dismissTray } from "./src/notifications/tray";
 
 // Background/killed FCM data message → render via notifee (req #1)
 setBackgroundMessageHandler(getMessaging(getApp()), async (message) => {
@@ -19,7 +20,7 @@ setBackgroundMessageHandler(getMessaging(getApp()), async (message) => {
 // in usePushNotifications once the app is up (req #2, #4).
 notifee.onBackgroundEvent(async ({ type, detail }) => {
   if (type === EventType.PRESS && detail.notification?.id) {
-    await notifee.cancelNotification(detail.notification.id);
+    await dismissTray(detail.notification.id);
   }
 });
 

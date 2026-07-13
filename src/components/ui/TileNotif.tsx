@@ -3,13 +3,16 @@ import {
   blackTextStyle,
   darkBlueColor,
   darkBlueRGBAColor,
-  dot,
   FontFamily,
   greenColor,
   greenRGBAColor,
+  greyColor,
   greyTextStyle,
   lineColor,
+  redColor,
   redStrokeColor,
+  SPACE_4,
+  SPACE_8,
   SPACE_16,
   whiteColor,
 } from "@/constants/theme";
@@ -34,13 +37,9 @@ function TileNotif({ data, onPress }: any) {
       <View
         style={[
           styles.cardContainer,
-          isUnread && {
-            backgroundColor: bgSecondaryColor,
-            borderColor: redStrokeColor,
-          },
+          isUnread && styles.cardUnread,
         ]}
       >
-        {isUnread ? <View style={styles.unreadDot} /> : null}
         <View
           style={[
             styles.iconContainer,
@@ -50,43 +49,50 @@ function TileNotif({ data, onPress }: any) {
           ]}
         >
           {isDelivery ? (
-            <FontAwesome6 name={"truck-fast"} size={24} color={darkBlueColor} />
+            <FontAwesome6 name={"truck-fast"} size={20} color={darkBlueColor} />
           ) : (
-            <BadgeCheck size={28} color={greenColor} />
+            <BadgeCheck size={22} color={greenColor} />
           )}
         </View>
-        <Gap height={SPACE_16} />
-        <Text style={[blackTextStyle, { fontFamily: FontFamily.satoshiMedium }]}>
-          {data?.title ?? "-"}
-        </Text>
-        <Gap height={SPACE_16} />
-        {body ? (
-          <Text style={[greyTextStyle, { fontSize: 12 }]}>{body}</Text>
-        ) : isDelivery ? (
-          <Text style={[greyTextStyle, { fontSize: 12 }]}>
-            Pesanan{" "}
-            <Text style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
-              {data?.order_id ?? "-"}
-            </Text>{" "}
-            sedang dalam perjalanan ke lokasi.
+        <Gap width={SPACE_8} />
+        <View style={styles.content}>
+          <View style={styles.titleRow}>
+            <Text
+              style={[
+                blackTextStyle,
+                styles.title,
+                isUnread && { fontFamily: FontFamily.satoshiBold },
+              ]}
+              numberOfLines={1}
+            >
+              {data?.title ?? "-"}
+            </Text>
+            {isUnread ? <View style={styles.unreadDot} /> : null}
+          </View>
+          <Gap height={SPACE_4} />
+          {body ? (
+            <Text style={styles.body} numberOfLines={2}>
+              {body}
+            </Text>
+          ) : isDelivery ? (
+            <Text style={styles.body} numberOfLines={2}>
+              Pesanan{" "}
+              <Text style={styles.bodyStrong}>{data?.order_id ?? "-"}</Text>{" "}
+              sedang dalam perjalanan ke lokasi.
+            </Text>
+          ) : (
+            <Text style={styles.body} numberOfLines={2}>
+              Sales <Text style={styles.bodyStrong}>{data?.sales_name ?? "-"}</Text>{" "}
+              telah menyetujui pesanan{" "}
+              <Text style={styles.bodyStrong}>{data?.order_id ?? "-"}</Text>.
+              Silakan pantau status di Menu Transaksi.
+            </Text>
+          )}
+          <Gap height={SPACE_8} />
+          <Text style={styles.timestamp}>
+            {formatDateTime(created, "DD MMM YYYY HH:mm")}
           </Text>
-        ) : (
-          <Text style={[greyTextStyle, { fontSize: 12 }]}>
-            Sales{" "}
-            <Text style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
-              {data?.sales_name ?? "-"}
-            </Text>{" "}
-            telah menyetujui pesanan{" "}
-            <Text style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
-              {data?.order_id ?? "-"}.
-            </Text>{" "}
-            Silakan pantau status selanjutnya di Menu Transaksi.
-          </Text>
-        )}
-        <Gap height={SPACE_16} />
-        <Text style={[greyTextStyle, { fontSize: 12 }]}>
-          {formatDateTime(created, "DD MMM YYYY HH:mm")}
-        </Text>
+        </View>
       </View>
     </AnimatedPressable>
   );
@@ -96,27 +102,57 @@ export default React.memo(TileNotif);
 
 const styles = StyleSheet.create({
   cardContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     padding: SPACE_16,
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: whiteColor,
     marginBottom: SPACE_16,
     borderWidth: 1,
     borderColor: lineColor,
   },
+  cardUnread: {
+    backgroundColor: bgSecondaryColor,
+    borderColor: redStrokeColor,
+  },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 5,
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
+  content: {
+    flex: 1,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  title: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: FontFamily.satoshiMedium,
+  },
   unreadDot: {
-    ...dot,
     width: 8,
     height: 8,
     borderRadius: 8,
-    position: "absolute",
-    top: SPACE_16,
-    right: SPACE_16,
+    backgroundColor: redColor,
+    marginLeft: SPACE_8,
+  },
+  body: {
+    ...greyTextStyle,
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  bodyStrong: {
+    color: blackTextStyle.color,
+    fontFamily: FontFamily.satoshiBold,
+  },
+  timestamp: {
+    color: greyColor,
+    fontFamily: FontFamily.satoshiRegular,
+    fontSize: 10,
   },
 });

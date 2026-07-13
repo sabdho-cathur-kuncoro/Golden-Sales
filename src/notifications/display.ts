@@ -1,6 +1,7 @@
 import notifee from "@notifee/react-native";
 import type { FirebaseMessagingTypes } from "@react-native-firebase/messaging";
 import { DEFAULT_CHANNEL_ID } from "./channels";
+import { resolveTrayId } from "./tray";
 
 /**
  * Render an incoming FCM message via notifee. Used in every state:
@@ -18,10 +19,16 @@ export async function displayFcmMessage(
   const body = data.body ?? message.notification?.body ?? "";
   const channelId = data.channelId ?? DEFAULT_CHANNEL_ID;
 
+  // Deterministic id: backend notifId, else FCM messageId. Mirror it back into
+  // data so tap handlers and the in-app matcher all target the same id.
+  const trayId = resolveTrayId(message);
+  if (trayId) data.notifId = trayId;
+  if (__DEV__) console.log("[NOTIF]", trayId, message);
+
   await notifee.displayNotification({
-    // stable id → dedupe + targeted cancel on open (req #4). Omit when backend
-    // sends none: notifee rejects "" / undefined, so let it auto-generate.
-    ...(data.notifId ? { id: data.notifId } : {}),
+    // stable id → dedupe + targeted cancel on open (req #4). Omit when neither
+    // notifId nor messageId exists: notifee rejects "" / undefined.
+    ...(trayId ? { id: trayId } : {}),
     title,
     body,
     data,

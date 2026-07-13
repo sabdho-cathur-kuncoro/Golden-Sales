@@ -17,7 +17,9 @@ export function currentTopics(): string[] {
 }
 
 /** Subscribe every topic both locally (device FCM) and on the backend. */
-export async function subscribeAllTopics(topics = currentTopics()): Promise<void> {
+export async function subscribeAllTopics(
+  topics = currentTopics()
+): Promise<void> {
   await Promise.all(
     topics.flatMap((t) => [
       subscribeTopic(t), // local device FCM subscription
@@ -28,7 +30,9 @@ export async function subscribeAllTopics(topics = currentTopics()): Promise<void
 
 /** Unsubscribe every topic both locally and on the backend. Call BEFORE the
  *  auth store clears — the backend service reads the token from the store. */
-export async function unsubscribeAllTopics(topics = currentTopics()): Promise<void> {
+export async function unsubscribeAllTopics(
+  topics = currentTopics()
+): Promise<void> {
   await Promise.all(
     topics.flatMap((t) => [
       unsubscribeTopic(t), // local device FCM unsubscription

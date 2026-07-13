@@ -20,6 +20,8 @@ import {
   whiteTextStyle,
 } from "@/constants/theme";
 import { useToast } from "@/hooks/useToast";
+import { resolveNotifRoute } from "@/notifications/navigation";
+import { dismissTray, dismissTrayForItem } from "@/notifications/tray";
 import {
   getNotifService,
   onReadAllNotifService,
@@ -71,7 +73,6 @@ const Notifikasi = () => {
 
   const open = useCallback(
     async (item: any) => {
-      console.log(item);
       const unread = item?.status
         ? item.status === "unread"
         : item?.isRead === false;
@@ -85,12 +86,12 @@ const Notifikasi = () => {
           );
           useNotificationStore.getState().refetch();
         }
-        if (item?.link) {
-          const orderId = item?.orderId ?? item?.order_id;
-          router.push({
-            pathname: "/transaksi-detail",
-            params: { id: orderId },
-          });
+        // clear this notif's OS tray entry now that it's read in-app
+        await dismissTrayForItem(item);
+        // navigate from the row's own `link` path (same resolver as push tap)
+        const target = resolveNotifRoute(item);
+        if (target) {
+          router.push(target as any);
         } else {
           useConfirmStore.getState().show({
             title: item?.title ?? "Notifikasi",
@@ -110,6 +111,8 @@ const Notifikasi = () => {
   const markAll = useCallback(async () => {
     try {
       await onReadAllNotifService();
+      // read everything → clear the whole tray + badge
+      await dismissTray();
       toast.success("Berhasil", "Semua notifikasi ditandai dibaca");
       getData();
       useNotificationStore.getState().refetch();
