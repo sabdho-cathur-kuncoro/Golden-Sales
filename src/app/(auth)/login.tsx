@@ -88,15 +88,11 @@ const Login = () => {
       source={require("@/assets/images/bg-login.png")}
     >
       <StatusBar barStyle={"light-content"} />
-      <View style={{ flexDirection: "row", marginBottom: 28 }}>
+      <View style={{ marginBottom: 24 }}>
         <Image
-          source={require("../../../assets/images/logo-golden.png")}
+          source={require("../../../assets/icon.png")}
           style={styles.logo}
         />
-        <Gap width={10} />
-        <Text style={[whiteTextStyle, styles.title]}>
-          Golden {"\n"}Communication
-        </Text>
       </View>
       <Text
         style={[
@@ -110,7 +106,7 @@ const Login = () => {
       <Text style={[whiteTextStyle]}>
         Masukan username/email/telepon dan password Anda
       </Text>
-      <Gap height={50} />
+      <Gap height={40} />
       <View style={{ paddingHorizontal: 32, width: "100%" }}>
         <View
           style={[
@@ -171,8 +167,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: {
-    width: 56,
-    height: 56,
+    width: 96,
+    height: 96,
+    borderRadius: 10,
   },
   title: {
     fontSize: 20,
