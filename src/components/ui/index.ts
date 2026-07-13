@@ -15,6 +15,7 @@ export { default as Gap } from "./Gap";
 export { default as GlobalLoading } from "./GlobalLoading";
 export { default as GradientButton } from "./GradientButton";
 export { default as Header } from "./Header";
+export { default as NetworkStatusBanner } from "./NetworkStatusBanner";
 export { default as ScanLine } from "./ScanLine";
 export { default as TileCart } from "./TileCart";
 export { default as TileChat } from "./TileChat";

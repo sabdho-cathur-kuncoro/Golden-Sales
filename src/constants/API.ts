@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/auth.store";
+import { reportLatencySample, SLOW_REQUEST_MS } from "@/stores/network.store";
 import { useToastStore } from "@/stores/toast.store";
 import { create } from "axios";
 import Constants from "expo-constants";
@@ -32,6 +33,41 @@ export const APIBEARER = create({
   baseURL: Config.BASE_URL,
   timeout: Config.API_TIMEOUT,
 });
+
+// --- Connection-quality monitor ---------------------------------------------
+// Time every request; a slow response or a timeout feeds a "bad" sample to the
+// network store (drives the "Koneksi tidak stabil" banner). A plain offline
+// error is NOT sampled here — NetInfo already owns the offline state.
+const isTimeout = (err: any): boolean =>
+  err?.code === "ECONNABORTED" || /timeout/i.test(err?.message ?? "");
+const isOfflineError = (err: any): boolean =>
+  err?.code === "ERR_NETWORK" || (err?.request && !err?.response);
+
+function attachLatencyMonitor(instance: ReturnType<typeof create>) {
+  instance.interceptors.request.use((config: any) => {
+    config.metadata = { start: Date.now() };
+    return config;
+  });
+  instance.interceptors.response.use(
+    (response: any) => {
+      const start = response.config?.metadata?.start;
+      if (start) reportLatencySample(Date.now() - start > SLOW_REQUEST_MS);
+      return response;
+    },
+    (error: any) => {
+      if (isTimeout(error)) {
+        reportLatencySample(true);
+      } else if (!isOfflineError(error)) {
+        const start = error.config?.metadata?.start;
+        if (start) reportLatencySample(Date.now() - start > SLOW_REQUEST_MS);
+      }
+      return Promise.reject(error);
+    }
+  );
+}
+
+attachLatencyMonitor(APIBASIC);
+attachLatencyMonitor(APIBEARER);
 
 APIBEARER.interceptors.request.use(
   async (config: any) => {

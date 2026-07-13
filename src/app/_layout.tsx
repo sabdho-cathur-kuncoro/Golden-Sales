@@ -5,7 +5,12 @@ import {
 } from "@/components/modal";
 import NotificationPoller from "@/components/NotificationPoller";
 import PushNotifications from "@/components/PushNotifications";
-import { AppBottomSheet, GlobalLoading, Toast } from "@/components/ui";
+import {
+  AppBottomSheet,
+  GlobalLoading,
+  NetworkStatusBanner,
+  Toast,
+} from "@/components/ui";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -46,6 +51,7 @@ export default function TabLayout() {
           </Stack>
           <AppBottomSheet />
           <Toast />
+          <NetworkStatusBanner />
           <GlobalConfirmModal />
           <GlobalInputModal />
           <GlobalPrePermissionModal />
