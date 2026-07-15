@@ -12,7 +12,7 @@ import Gap from "./Gap";
 
 const current = "SLS-001";
 
-async function ChatBubble({ data }: any) {
+function ChatBubble({ data }: any) {
   const account = data?.sender_id === current;
   if (data?.type === "day") {
     return (

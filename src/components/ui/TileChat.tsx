@@ -16,7 +16,7 @@ import { StyleSheet, Text, View } from "react-native";
 import AnimatedPressable from "./AnimatedPressable";
 import Gap from "./Gap";
 
-async function TileChat({ data, onPress }: any) {
+function TileChat({ data, onPress }: any) {
   if (data?.type === "day") {
     return (
       <View style={styles.dayContainer}>
