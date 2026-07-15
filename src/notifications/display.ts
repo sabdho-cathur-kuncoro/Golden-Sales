@@ -23,7 +23,6 @@ export async function displayFcmMessage(
   // data so tap handlers and the in-app matcher all target the same id.
   const trayId = resolveTrayId(message);
   if (trayId) data.notifId = trayId;
-  if (__DEV__) console.log("[NOTIF]", trayId, message);
 
   await notifee.displayNotification({
     // stable id → dedupe + targeted cancel on open (req #4). Omit when neither
