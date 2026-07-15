@@ -15,7 +15,7 @@ import {
   whiteColor,
 } from "@/constants/theme";
 import { Check, ChevronDown, ChevronUp, Trash2 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { currencyFormat } from "../../../utils/currencyFormat";
 import { lineWithPromo } from "../../../utils/promo";
@@ -44,9 +44,13 @@ function TileCart({
   // Serial sub-list collapse (serial lines only). Collapsed by default.
   const [open, setOpen] = useState(false);
   // Keep the displayed qty in sync when the store updates item.quantity.
-  useEffect(() => {
+  // Adjust during render (not an effect) so there's no trailing passive effect:
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevQtyNum, setPrevQtyNum] = useState(qtyNum);
+  if (qtyNum !== prevQtyNum) {
+    setPrevQtyNum(qtyNum);
     setQty(String(qtyNum));
-  }, [qtyNum]);
+  }
 
   const unit = Number(item?.salesPrice) || 0;
   const info = lineWithPromo(unit, qtyNum, item?.promos);
