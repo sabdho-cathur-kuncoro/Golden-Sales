@@ -4,7 +4,9 @@
 node_modules/
 
 #config
-config
+config/keystore.properties
+config/google-services.json
+config/GoogleService-Info.plist
 
 # Expo
 .expo/
