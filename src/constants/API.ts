@@ -21,7 +21,7 @@ export const Config = {
   URL: API_URL,
   BASE_URL: API_URL + "/sales",
   API_TIMEOUT: 60 * 1000,
-  BEARER: bearerUat,
+  BEARER: bearerPrd,
 };
 
 export const APIBASIC = create({
