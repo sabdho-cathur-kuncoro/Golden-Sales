@@ -155,6 +155,7 @@ const TransaksiDetail = () => {
     "Diproses",
     "Diproses Sebagian",
     "Dikirim",
+    "Tiba",
     "Selesai",
     "Selesai Sebagian",
   ].includes(status);
@@ -182,6 +183,14 @@ const TransaksiDetail = () => {
         setCompleting(true);
         try {
           const res = await completeOrderService(id);
+          // Backend can answer 200 with success:false (e.g. stock rejected).
+          if (res?.success === false) {
+            toast.error(
+              "Gagal",
+              res?.message ?? "Gagal menyelesaikan pesanan."
+            );
+            return;
+          }
           const sn = res?.snInserted
             ? ` ${res.snInserted} item masuk ke stock.`
             : "";
@@ -260,7 +269,8 @@ const TransaksiDetail = () => {
     0
   );
   const promoTotal = items.reduce((s, i) => s + num(i?.discount), 0);
-  const voucherDiscount = Math.abs(num(order?.discount));
+  const voucherDiscount = Math.abs(num(order?.discountVoucher));
+  const voucherOthers = Math.abs(num(order?.discount));
 
   // latest status = most recent done event, fallback last event
   const latestEvent =
@@ -302,7 +312,10 @@ const TransaksiDetail = () => {
           <View style={[rowCenter, { alignItems: "flex-start" }]}>
             <View style={{ flex: 1 }}>
               <Text
-                style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}
+                style={[
+                  blackTextStyle,
+                  { fontFamily: FontFamily.satoshiBold, fontSize: 12 },
+                ]}
               >
                 {order?.orderNumber ?? id}
               </Text>
@@ -456,7 +469,10 @@ const TransaksiDetail = () => {
                       <Text
                         style={[
                           blackTextStyle,
-                          { fontFamily: FontFamily.satoshiMedium },
+                          {
+                            fontFamily: FontFamily.satoshiMedium,
+                            fontSize: 12,
+                          },
                         ]}
                       >
                         {item?.productName}
@@ -505,7 +521,7 @@ const TransaksiDetail = () => {
                           blackTextStyle,
                           {
                             fontFamily: FontFamily.satoshiMedium,
-                            fontSize: 16,
+                            fontSize: 12,
                           },
                         ]}
                       >
@@ -587,7 +603,10 @@ const TransaksiDetail = () => {
                       <Text
                         style={[
                           blackTextStyle,
-                          { fontFamily: FontFamily.satoshiMedium },
+                          {
+                            fontFamily: FontFamily.satoshiMedium,
+                            fontSize: 12,
+                          },
                         ]}
                       >
                         {g.productName}
@@ -612,7 +631,10 @@ const TransaksiDetail = () => {
                       <Text
                         style={[
                           orangeTextStyle,
-                          { fontFamily: FontFamily.satoshiMedium },
+                          {
+                            fontFamily: FontFamily.satoshiMedium,
+                            fontSize: 12,
+                          },
                         ]}
                       >
                         {currencyFormat(g.totalSubtotal)}
@@ -746,21 +768,31 @@ const TransaksiDetail = () => {
               <Money label="Diskon Voucher" value={-voucherDiscount} />
             </>
           ) : null}
+          {voucherOthers > 0 ? (
+            <>
+              <Gap height={SPACE_8} />
+              <Money label="Diskon Lain-lain" value={-voucherOthers} />
+            </>
+          ) : null}
           <Gap height={SPACE_8} />
           <Money label="Pengiriman" value={num(order?.deliveryFee)} />
-          <Gap height={SPACE_8} />
-          <Money label="Biaya Admin" value={num(order?.adminFee)} />
           <Gap height={SPACE_16} />
           <View style={line} />
           <Gap height={SPACE_16} />
           <View style={[rowCenter]}>
             <Text
-              style={[primaryTextStyle, { fontFamily: FontFamily.satoshiBold }]}
+              style={[
+                primaryTextStyle,
+                { fontFamily: FontFamily.satoshiBold, fontSize: 12 },
+              ]}
             >
               TOTAL
             </Text>
             <Text
-              style={[primaryTextStyle, { fontFamily: FontFamily.satoshiBold }]}
+              style={[
+                primaryTextStyle,
+                { fontFamily: FontFamily.satoshiBold, fontSize: 12 },
+              ]}
             >
               {currencyFormat(order?.total)}
             </Text>
@@ -873,11 +905,11 @@ export default TransaksiDetail;
 
 const Row = ({ label, value }: any) => (
   <View style={[rowCenter]}>
-    <Text style={[greyTextStyle, { fontSize: 13 }]}>{label}</Text>
+    <Text style={[greyTextStyle, { fontSize: 12 }]}>{label}</Text>
     <Text
       style={[
         blackTextStyle,
-        { fontSize: 13, fontFamily: FontFamily.satoshiMedium },
+        { fontSize: 12, fontFamily: FontFamily.satoshiMedium },
       ]}
     >
       {value}
@@ -887,11 +919,11 @@ const Row = ({ label, value }: any) => (
 
 const Money = ({ label, value }: any) => (
   <View style={[rowCenter]}>
-    <Text style={[greyTextStyle, { fontSize: 13 }]}>{label}</Text>
+    <Text style={[greyTextStyle, { fontSize: 12 }]}>{label}</Text>
     <Text
       style={[
         value < 0 ? greenTextStyle : blackTextStyle,
-        { fontSize: 13, fontFamily: FontFamily.satoshiMedium },
+        { fontSize: 12, fontFamily: FontFamily.satoshiMedium },
       ]}
     >
       {value < 0 ? "- " : ""}
@@ -912,7 +944,7 @@ const CustomerRow = ({ icon, children, onPress }: any) => {
       ) : (
         <Gap width={37} />
       )}
-      <Text style={[blackTextStyle, { fontSize: 13, flex: 1 }]}>
+      <Text style={[blackTextStyle, { fontSize: 12, flex: 1 }]}>
         {children}
       </Text>
     </View>
