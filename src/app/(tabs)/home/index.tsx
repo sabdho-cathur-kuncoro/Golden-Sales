@@ -1,7 +1,12 @@
 import CartIcon from "@/assets/icons/ic-cart.svg";
 import KatalogIcon from "@/assets/icons/ic-katalog.svg";
 import ReqItemIcon from "@/assets/icons/ic-request-item.svg";
+import FireImg from "@/assets/images/fire.svg";
 import { AnimatedPressable, BannerSlider, Gap } from "@/components/ui";
+import FlashSaleCard, {
+  FlashSaleCardEmpty,
+  FlashSaleCardSkeleton,
+} from "@/components/ui/FlashSaleCard";
 import {
   bgColor,
   bgSecondaryColor,
@@ -26,7 +31,10 @@ import {
   whiteTextStyle,
 } from "@/constants/theme";
 import { useNotificationAccess } from "@/hooks/useNotificationAccess";
-import { getSlidersService } from "@/services/global.services";
+import {
+  getFlashSaleService,
+  getSlidersService,
+} from "@/services/global.services";
 import { getMyOrdersService } from "@/services/orders.services";
 import { useAuthStore } from "@/stores/auth.store";
 import { selectCartCount, useCartStore } from "@/stores/cart.store";
@@ -34,6 +42,7 @@ import {
   selectNotifUnread,
   useNotificationStore,
 } from "@/stores/notification.store";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useIsFocused } from "expo-router";
 import { Bell, ChevronRight, RotateCcw, Users } from "lucide-react-native";
@@ -54,15 +63,18 @@ import { formatDate } from "../../../../utils/days";
 const Home = () => {
   const { user } = useAuthStore();
   const { request } = useNotificationAccess();
+  const { height } = useWindowDimensions();
+  const flashSaleHeight = Math.max(200, Math.min(height * 0.22, 240));
   const cartCount = useCartStore(selectCartCount);
   const notifCount = useNotificationStore(selectNotifUnread);
+  const [flashSales, setFlashSales] = useState<any[]>([]);
+  const [flashSalesLoading, setFlashSalesLoading] = useState(true);
   const [sliders, setSliders] = useState<any[]>([]);
   const [slidersLoading, setSlidersLoading] = useState(true);
   const [latestOrder, setLatestOrder] = useState<any>(null);
   const [latestLoading, setLatestLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { height } = useWindowDimensions();
   const isFocused = useIsFocused();
 
   useEffect(() => {
@@ -73,6 +85,7 @@ const Home = () => {
     if (!isFocused) return;
     handleNotif();
     onGetSliders();
+    onGetFlashSales();
     onGetLatestOrder();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
@@ -99,6 +112,17 @@ const Home = () => {
       if (__DEV__) console.log(e);
     } finally {
       setSlidersLoading(false);
+    }
+  }
+
+  async function onGetFlashSales() {
+    try {
+      const res = await getFlashSaleService();
+      setFlashSales(res ?? []);
+    } catch (e) {
+      if (__DEV__) console.log(e);
+    } finally {
+      setFlashSalesLoading(false);
     }
   }
 
@@ -238,7 +262,96 @@ const Home = () => {
             <BannerSlider data={sliders} loading={slidersLoading} />
           </View>
           <Gap height={20} />
-          {/* ORDER SAYA TERAKHIR */}
+          {/* FLASH SALE */}
+          <View
+            style={{
+              width: "100%",
+              height: flashSaleHeight,
+              paddingHorizontal: SPACE_16,
+              borderRadius: 12,
+            }}
+          >
+            <LinearGradient
+              colors={[darkPrimaryColor, primaryColor]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0.7, y: 1 }}
+              style={{ flex: 1, paddingTop: 0, borderRadius: 12 }}
+            >
+              <View style={{ paddingHorizontal: 10, paddingTop: 10 }}>
+                <View style={styles.topSaleContent}>
+                  <View
+                    style={{
+                      width: "89%",
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    <FireImg width={20} height={20} />
+                    <Gap width={10} />
+                    <Text
+                      style={[
+                        whiteTextStyle,
+                        { fontFamily: FontFamily.satoshiBold },
+                      ]}
+                    >
+                      Flash Sale
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View
+                style={[
+                  styles.bottomSaleContent,
+                  { height: flashSaleHeight - 50 },
+                ]}
+              >
+                <View
+                  style={{
+                    width: "30%",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <Image
+                    source={require("../../../../assets/images/character-by.png")}
+                    style={{
+                      width: 96,
+                      height: 96,
+                    }}
+                    contentFit="cover"
+                  />
+                </View>
+                <ScrollView
+                  horizontal
+                  contentContainerStyle={{
+                    alignItems: "flex-end",
+                    paddingBottom: 20,
+                  }}
+                >
+                  {flashSalesLoading ? (
+                    [0, 1, 2].map((i) => <FlashSaleCardSkeleton key={i} />)
+                  ) : flashSales.length === 0 ? (
+                    <FlashSaleCardEmpty />
+                  ) : (
+                    flashSales.map((data) => {
+                      return (
+                        <FlashSaleCard
+                          key={data.id}
+                          discount={data.discountPercent ?? 0}
+                          productName={data.productName ?? "-"}
+                          category={data.categoryName ?? "-"}
+                          normalPrice={currencyFormat(data.originalPrice ?? 0)}
+                          discountPrice={currencyFormat(data.salePrice ?? 0)}
+                          onPress={() => {}}
+                        />
+                      );
+                    })
+                  )}
+                </ScrollView>
+              </View>
+            </LinearGradient>
+          </View>
+          <Gap height={20} />
+          {/* ORDER TERAKHIR SAYA */}
           <View style={[rowCenter, paddingH]}>
             <Text
               style={[
@@ -246,7 +359,7 @@ const Home = () => {
                 { fontSize: 16, fontFamily: FontFamily.satoshiBold },
               ]}
             >
-              Order Saya Terakhir
+              Order Terakhir Saya
             </Text>
             <AnimatedPressable onPress={() => router.push("/transaksi")}>
               <ChevronRight size={20} color={blackColor} />
@@ -443,5 +556,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     paddingVertical: 12,
+  },
+  topSaleContent: {
+    flexDirection: "row",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 10,
+  },
+  bottomSaleContent: {
+    width: "100%",
+    paddingLeft: 10,
+    flexDirection: "row",
   },
 });

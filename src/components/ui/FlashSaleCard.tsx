@@ -3,22 +3,13 @@ import {
   FontFamily,
   greyTextStyle,
   orangeTextStyle,
-  primaryTextStyle,
-  redColor,
+  primaryColor,
   SPACE_16,
-  SPACE_4,
   whiteColor,
-  whiteTextStyle,
 } from "@/constants/theme";
-import { Image } from "expo-image";
 import { Flame } from "lucide-react-native";
 import React, { useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -26,65 +17,85 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { currencyFormat } from "../../../utils/currencyFormat";
 import Gap from "./Gap";
 
-const FlashSaleCard = ({ data }: any) => {
+type TypeFlashSale = {
+  discount: string;
+  productName: string;
+  category: string;
+  normalPrice: string;
+  discountPrice: string;
+  onPress: () => void;
+};
+
+const FlashSaleCard = ({
+  discount,
+  productName,
+  category,
+  normalPrice,
+  discountPrice,
+  onPress,
+}: TypeFlashSale) => {
+  const { width } = useWindowDimensions();
   return (
-    <View key={data.id} style={styles.tileContainer}>
-      <View
-        style={{
-          width: "25%",
-          height: 100,
-          borderRadius: 10,
-        }}
-      >
-        <Image
-          source={data?.image}
-          style={{ width: "100%", height: "100%" }}
-          contentFit="fill"
-        />
+    <View style={[styles.cardContainer, { width: width * 0.4 }]}>
+      {/* <View style={styles.discountbannerContainer}>
+        <Text
+          style={[
+            whiteTextStyle,
+            {
+              fontSize: 12,
+              fontFamily: FontFamily.satoshiMedium,
+            },
+          ]}
+        >
+          {discount}%
+        </Text>
       </View>
-      <View style={{ width: "45%" }}>
-        <View style={styles.discountContainer}>
+      <Gap height={10} /> */}
+      <View>
+        <Text style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
+          {productName}
+        </Text>
+        <Gap height={2} />
+        <Text style={[greyTextStyle, { fontSize: 12 }]}>{category}</Text>
+      </View>
+      <Gap height={10} />
+      <View>
+        <Text
+          style={[
+            greyTextStyle,
+            { fontSize: 12, textDecorationLine: "line-through" },
+          ]}
+        >
+          {normalPrice}
+        </Text>
+        <Gap height={2} />
+        <Text style={[orangeTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
+          {discountPrice}
+        </Text>
+      </View>
+      {/* <Gap height={20} />
+      <AnimatedPressable onPress={onPress}>
+        <LinearGradient
+          style={styles.btnContainer}
+          colors={primaryGradientColor}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 1, y: 0.7 }}
+        >
           <Text
             style={[
               whiteTextStyle,
               {
                 fontSize: 12,
-                fontFamily: FontFamily.satoshiMedium,
+                fontFamily: FontFamily.satoshiBold,
               },
             ]}
           >
-            -{data?.discount_percentage}%
+            Beli Sekarang
           </Text>
-        </View>
-        <Gap height={10} />
-        <Text style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
-          {data.name}
-        </Text>
-        <Gap height={SPACE_4} />
-        <Text style={[blackTextStyle]}>{data.category}</Text>
-        <Gap height={SPACE_16} />
-        <Text style={[primaryTextStyle, { fontSize: 12 }]}>S&K Berlaku</Text>
-      </View>
-      <View
-        style={{
-          width: "25%",
-        }}
-      >
-        <Text
-          style={[
-            greyTextStyle,
-            { textDecorationLine: "line-through", fontSize: 12 },
-          ]}
-        >
-          {currencyFormat(data.normal_price)}
-        </Text>
-        <Text style={[orangeTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
-          {currencyFormat(data.discount_price)}
-        </Text>
-      </View>
+        </LinearGradient>
+      </AnimatedPressable> */}
     </View>
   );
 };
@@ -124,7 +135,7 @@ export const FlashSaleCardSkeleton = () => {
 export const FlashSaleCardEmpty = () => {
   const { width } = useWindowDimensions();
   return (
-    <View style={[styles.emptyContainer, { width: width - 32 }]}>
+    <View style={[styles.emptyContainer, { width: width - 52 }]}>
       <Flame size={32} color={greyTextStyle.color as string} />
       <Gap height={8} />
       <Text style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
@@ -147,25 +158,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: SPACE_16,
   },
-  tileContainer: {
-    width: "100%",
-    maxWidth: 340,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: whiteColor,
-    marginRight: SPACE_16,
-  },
-  discountContainer: {
-    maxWidth: "35%",
-    paddingHorizontal: 6,
+  discountbannerContainer: {
+    position: "absolute",
+    alignSelf: "center",
+    top: -10,
+    paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 33,
-    backgroundColor: redColor,
+    backgroundColor: primaryColor,
+  },
+  btnContainer: {
+    width: "100%",
+    padding: 10,
+    borderRadius: 41,
     alignItems: "center",
-    justifyContent: "center",
   },
   bone: {
     height: 14,
@@ -178,7 +184,7 @@ const styles = StyleSheet.create({
     borderRadius: 41,
   },
   emptyContainer: {
-    maxHeight: 300,
+    maxHeight: 200,
     flex: 1,
     backgroundColor: whiteColor,
     padding: SPACE_16,

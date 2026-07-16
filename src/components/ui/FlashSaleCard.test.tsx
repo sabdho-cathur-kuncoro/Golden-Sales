@@ -3,24 +3,22 @@ import FlashSaleCard, {
   FlashSaleCardEmpty,
   FlashSaleCardSkeleton,
 } from './FlashSaleCard';
+import { currencyFormat } from '../../../utils/currencyFormat';
 
-const data = {
-  id: 1,
-  image: 'https://example.com/x.png',
-  name: 'Promo Semen',
+const props = {
+  discount: '20',
+  productName: 'Promo Semen',
   category: 'Bahan Bangunan',
-  discount_percentage: 20,
-  normal_price: 60000,
-  discount_price: 48000,
+  normalPrice: currencyFormat(60000),
+  discountPrice: currencyFormat(48000),
+  onPress: () => {},
 };
 
 describe('FlashSaleCard', () => {
-  it('renders name, category, discount and both prices', async () => {
-    await render(<FlashSaleCard data={data} />);
+  it('renders name, category and both prices', async () => {
+    await render(<FlashSaleCard {...props} />);
     expect(screen.getByText('Promo Semen')).toBeTruthy();
     expect(screen.getByText('Bahan Bangunan')).toBeTruthy();
-    expect(screen.getByText('-20%')).toBeTruthy();
-    expect(screen.getByText('S&K Berlaku')).toBeTruthy();
     expect(screen.getByText(/60\.000/)).toBeTruthy();
     expect(screen.getByText(/48\.000/)).toBeTruthy();
   });
