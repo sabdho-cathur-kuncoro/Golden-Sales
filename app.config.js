@@ -156,8 +156,7 @@ export default {
     },
     // Tempat menampung seluruh variabel .env kustom Anda
     extra: {
-      BEARER_UAT: process.env.PUBLIC_BEARER_UAT,
-      BEARER_PRD: process.env.PUBLIC_BEARER_PRD,
+      BEARER: process.env.PUBLIC_BEARER,
     },
   },
 };

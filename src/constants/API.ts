@@ -14,14 +14,13 @@ if (ENABLE_DEV_TOOLS) {
 }
 
 const API_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
-const bearerUat = Constants.expoConfig!.extra!.BEARER_UAT;
-const bearerPrd = Constants.expoConfig!.extra!.BEARER_PRD;
+const BEARER = Constants.expoConfig!.extra!.BEARER;
 
 export const Config = {
   URL: API_URL,
   BASE_URL: API_URL + "/sales",
   API_TIMEOUT: 60 * 1000,
-  BEARER: bearerPrd,
+  BEARER: BEARER,
 };
 
 export const APIBASIC = create({

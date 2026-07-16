@@ -37,6 +37,8 @@ yarn-error.*
 
 # local env files
 .env
+.env.uat
+.env.prod
 .env*.local
 
 # firebase config (inject via EAS file secrets in CI)
