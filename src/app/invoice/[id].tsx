@@ -5,6 +5,7 @@ import {
   darkPrimaryColor,
   FontFamily,
   greenColor,
+  greenRGBAColor,
   greyTextStyle,
   lineColor,
   orangeColor,
@@ -149,11 +150,26 @@ const InvoiceScreen = () => {
             : it.productCode
             ? `<div class="code">${it.productCode}</div>`
             : "";
+          const lineDiscount = num(it.discount);
+          const unitNet =
+            lineDiscount > 0 && num(it.quantity)
+              ? num(it.unitPrice) - lineDiscount / num(it.quantity)
+              : num(it.unitPrice);
+          const priceHtml =
+            lineDiscount > 0
+              ? `<div class="muted sm"><s>@ ${currencyFormat(
+                  it.unitPrice
+                )}</s> <span style="color:#B20605">@ ${currencyFormat(
+                  unitNet
+                )}</span></div><div class="hemat">Hemat ${currencyFormat(
+                  lineDiscount
+                )}</div>`
+              : `<div class="muted sm">@ ${currencyFormat(
+                  it.unitPrice
+                )}</div>`;
           return `<div class="irow">
             <div><div class="pname">${it.productName ?? ""}</div>${snHtml}
-              <div class="muted sm">@ ${currencyFormat(
-                it.unitPrice
-              )}</div></div>
+              ${priceHtml}</div>
             <div class="qty">${it.quantity ?? ""}</div>
             <div class="sub">${currencyFormat(
               it.subtotal ??
@@ -177,6 +193,13 @@ const InvoiceScreen = () => {
             <div class="muted sm"><b>${
               g.rows.length
             } nomor</b> · @ ${currencyFormat(g.unitPrice)}</div>
+            ${
+              num(g.totalDiscount) > 0
+                ? `<div class="hemat">Hemat ${currencyFormat(
+                    g.totalDiscount
+                  )}</div>`
+                : ""
+            }
             <div class="snwrap">${snList}</div></div>
           <div class="qty">${g.totalQuantity}</div>
           <div class="sub">${currencyFormat(g.totalSubtotal)}</div>
@@ -238,6 +261,7 @@ const InvoiceScreen = () => {
       .sub { text-align:right; font-weight:700; align-self:center; }
       .snwrap { margin-top:6px; padding-left:10px; border-left:2px solid #FECECE; }
       .snrow { display:flex; justify-content:space-between; font-family:monospace; font-size:11px; padding:1px 0; }
+      .hemat { display:inline-block; background:#E8F9F0; color:#0DB561; border:1px solid #0DB561; font-size:9px; font-weight:700; padding:2px 6px; border-radius:999px; margin-top:4px; }
       .totals { margin-top:16px; }
       .mrow { display:flex; justify-content:space-between; padding:3px 0; }
       .total { display:flex; justify-content:space-between; font-weight:700; font-size:15px; border-top:1px dashed #ccc; padding-top:8px; margin-top:8px; }
@@ -292,8 +316,15 @@ const InvoiceScreen = () => {
               ? moneyRow("Diskon Voucher", -Math.abs(num(order.discount)))
               : ""
           }
+          ${
+            num(order.orderTaxAmount) > 0
+              ? moneyRow(
+                  `Order Tax (${num(order.orderTax)}%)`,
+                  num(order.orderTaxAmount)
+                )
+              : ""
+          }
           ${moneyRow("Biaya Pengiriman", num(order.deliveryFee))}
-          ${moneyRow("Biaya Admin", num(order.adminFee))}
           <div class="total"><span>TOTAL PEMBAYARAN</span><span class="amt">${currencyFormat(
             order.total
           )}</span></div>
@@ -606,6 +637,12 @@ const InvoiceScreen = () => {
                   const sub =
                     it.subtotal ??
                     num(it.unitPrice) * num(it.quantity) - num(it.discount);
+                  const lineDiscount = num(it.discount);
+                  const hasPromo = lineDiscount > 0;
+                  const unitNet =
+                    hasPromo && num(it.quantity)
+                      ? num(it.unitPrice) - lineDiscount / num(it.quantity)
+                      : num(it.unitPrice);
                   return (
                     <View key={g.key} style={styles.irow}>
                       <View style={[styles.row, styles.between]}>
@@ -614,9 +651,42 @@ const InvoiceScreen = () => {
                           {it.productCode ? (
                             <Text style={styles.code}>{it.productCode}</Text>
                           ) : null}
-                          <Text style={[greyTextStyle, { fontSize: 10 }]}>
-                            @ {currencyFormat(it.unitPrice)}
-                          </Text>
+                          {hasPromo ? (
+                            <View
+                              style={[
+                                styles.row,
+                                { alignItems: "center", gap: 4 },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  greyTextStyle,
+                                  {
+                                    fontSize: 10,
+                                    textDecorationLine: "line-through",
+                                  },
+                                ]}
+                              >
+                                @ {currencyFormat(it.unitPrice)}
+                              </Text>
+                              <Text
+                                style={{ fontSize: 10, color: primaryColor }}
+                              >
+                                @ {currencyFormat(unitNet)}
+                              </Text>
+                            </View>
+                          ) : (
+                            <Text style={[greyTextStyle, { fontSize: 10 }]}>
+                              @ {currencyFormat(it.unitPrice)}
+                            </Text>
+                          )}
+                          {hasPromo ? (
+                            <View style={styles.pillPromo}>
+                              <Text style={styles.pillPromoTxt}>
+                                Hemat {currencyFormat(lineDiscount)}
+                              </Text>
+                            </View>
+                          ) : null}
                         </View>
                         <Text style={[styles.cell, styles.colQty]}>
                           {it.quantity}
@@ -666,6 +736,13 @@ const InvoiceScreen = () => {
                             @ {currencyFormat(g.unitPrice)}
                           </Text>
                         </View>
+                        {num(g.totalDiscount) > 0 ? (
+                          <View style={styles.pillPromo}>
+                            <Text style={styles.pillPromoTxt}>
+                              Hemat {currencyFormat(g.totalDiscount)}
+                            </Text>
+                          </View>
+                        ) : null}
                       </View>
                       <Text style={[styles.cell, styles.colQty]}>
                         {g.totalQuantity}
@@ -721,11 +798,16 @@ const InvoiceScreen = () => {
               {voucherDiscount > 0 ? (
                 <MoneyRow label="Diskon Voucher" value={-voucherDiscount} />
               ) : null}
+              {num(order.orderTaxAmount) > 0 ? (
+                <MoneyRow
+                  label={`Order Tax (${num(order.orderTax)}%)`}
+                  value={num(order.orderTaxAmount)}
+                />
+              ) : null}
               <MoneyRow
                 label="Biaya Pengiriman"
                 value={num(order.deliveryFee)}
               />
-              <MoneyRow label="Biaya Admin" value={num(order.adminFee)} />
               <View style={styles.totalRow}>
                 <Text
                   style={[
@@ -995,6 +1077,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+  },
+  pillPromo: {
+    alignSelf: "flex-start",
+    marginTop: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    backgroundColor: greenRGBAColor,
+    borderWidth: 1,
+    borderColor: greenColor,
+    borderRadius: 999,
+  },
+  pillPromoTxt: {
+    color: greenColor,
+    fontSize: 9,
+    fontFamily: FontFamily.satoshiBold,
   },
   nomorPillTxt: {
     color: primaryColor,
