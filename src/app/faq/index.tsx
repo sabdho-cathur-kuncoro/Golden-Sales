@@ -22,14 +22,23 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
+  Bell,
+  BookOpen,
   ChevronLeft,
   ClipboardCheck,
+  FileText,
   Headset,
   HelpCircle,
+  Lock,
+  MessageCircle,
+  PackageCheck,
   PackageSearch,
+  RotateCcw,
+  ScanQrCode,
   Search,
   ShoppingCart,
-  Wallet,
+  Users,
+  WifiOff,
   X,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
@@ -47,37 +56,107 @@ const FaqData = [
   {
     id: 1,
     icon: ShoppingCart,
-    question: "Bagaimana cara melakukan pemesanan produk?",
+    question: "Bagaimana cara membuat pesanan untuk customer?",
     answer:
-      "Pilih produk pada menu Katalog, tambahkan ke keranjang, lalu lanjutkan ke halaman konfirmasi order untuk menyelesaikan pemesanan.",
+      "Pilih produk dari menu Katalog atau keranjang, tentukan customer/outlet beserta alamat pengiriman, lalu periksa Rincian Order dan pilih metode pembayaran. Pesanan akan melewati tahap persetujuan sebelum diproses.",
   },
   {
     id: 2,
-    icon: Wallet,
-    question: "Bagaimana cara melakukan pembayaran?",
+    icon: PackageSearch,
+    question: "Bagaimana cara minta barang ke gudang?",
     answer:
-      "Pada halaman pembayaran, pilih metode pembayaran yang tersedia lalu ikuti instruksi yang ditampilkan hingga status order berubah menjadi terbayar.",
+      "Gunakan menu Minta Barang di Beranda: telusuri stok per kategori, tentukan jumlah yang dibutuhkan, lalu ajukan permintaan ke gudang.",
   },
   {
     id: 3,
-    icon: PackageSearch,
-    question: "Bagaimana cara mengecek status pesanan saya?",
+    icon: ClipboardCheck,
+    question: "Bagaimana proses approval pesanan customer?",
     answer:
-      "Buka menu Transaksi untuk melihat daftar pesanan beserta status terkininya, atau buka halaman Status Order untuk detail tahapan prosesnya.",
+      "Pesanan customer melewati beberapa tahap persetujuan yang bisa dipantau di tab Approval. Buka detailnya untuk melihat timeline, menyetujui, atau menolak dengan alasan. Selama status masih Menunggu Konfirmasi, item pesanan dapat dihapus dan stoknya dikembalikan.",
   },
   {
     id: 4,
-    icon: ClipboardCheck,
-    question: "Bagaimana proses approval pengajuan?",
+    icon: PackageCheck,
+    question: "Apa yang harus dilakukan saat pesanan berstatus Dikirim?",
     answer:
-      "Pengajuan akan melalui beberapa tahap persetujuan. Anda dapat memantau progres tiap tahap pada menu Approval beserta detail alasannya.",
+      "Buka Detail Transaksi lalu tekan Selesaikan Pesanan. Item beserta serial number-nya akan masuk ke Stock Anda dan bisa langsung dijual melalui menu Scan.",
   },
   {
     id: 5,
+    icon: ScanQrCode,
+    question: "Bagaimana cara menjual stok lewat menu Scan?",
+    answer:
+      "Tekan tombol Scan di tengah tab bar, lalu arahkan kamera ke barcode/QR produk. Sistem akan memeriksa stok Anda dan mencatat penjualan. Riwayat penjualan dapat dilihat di menu terkait.",
+  },
+  {
+    id: 6,
+    icon: PackageSearch,
+    question: "Bagaimana cara mengecek status pesanan saya?",
+    answer:
+      "Buka menu Transaksi untuk semua pesanan beserta status terkininya, atau menu Laporan untuk pesanan yang sudah selesai/ditolak. Di Detail Transaksi tersedia Riwayat Pesanan dengan timeline lengkap tiap tahapan.",
+  },
+  {
+    id: 7,
+    icon: FileText,
+    question: "Bagaimana cara melihat atau membagikan invoice?",
+    answer:
+      "Buka Detail Transaksi lalu pilih Lihat Invoice. Sebelum pesanan disetujui Admin SO dokumen berupa Proforma Invoice, setelahnya menjadi invoice resmi. Invoice dapat diunduh sebagai PDF atau dibagikan langsung.",
+  },
+  {
+    id: 8,
+    icon: Lock,
+    question: "Kenapa kode voucher/serial number tidak terlihat?",
+    answer:
+      "Untuk keamanan, kode voucher dan serial number disembunyikan sampai pesanan berstatus Selesai. Setelah selesai, kode akan tampil di Detail Transaksi.",
+  },
+  {
+    id: 9,
+    icon: RotateCcw,
+    question: "Bagaimana cara melakukan pengembalian barang?",
+    answer:
+      "Gunakan menu Pengembalian di Beranda untuk mengajukan retur. Riwayat pengembalian dapat dipantau di halaman yang sama.",
+  },
+  {
+    id: 10,
+    icon: Users,
+    question: "Bagaimana cara mendaftarkan customer baru?",
+    answer:
+      "Buka menu Customer lalu tambah customer baru. Sistem akan memeriksa kode dan nomor telepon agar tidak duplikat. Pendaftaran menunggu persetujuan — statusnya bisa dipantau di daftar registrasi pending.",
+  },
+  {
+    id: 11,
+    icon: MessageCircle,
+    question: "Bagaimana cara bertanya tentang pesanan tertentu?",
+    answer:
+      "Buka Detail Transaksi lalu pilih Chat Pesanan untuk mengirim pesan atau menanyakan status pesanan tersebut langsung ke admin.",
+  },
+  {
+    id: 12,
+    icon: Bell,
+    question: "Kenapa saya tidak menerima notifikasi?",
+    answer:
+      "Pastikan izin notifikasi diberikan saat diminta aplikasi dan tidak dimatikan di pengaturan HP. Jenis notifikasi yang diterima dapat diatur melalui Preferensi Notifikasi di menu Profil.",
+  },
+  {
+    id: 13,
+    icon: WifiOff,
+    question: "Apakah aplikasi bisa digunakan saat offline?",
+    answer:
+      "Katalog produk dan keranjang tersimpan secara lokal sehingga tetap bisa dibuka saat offline. Perubahan keranjang akan disinkronkan otomatis begitu koneksi kembali tersedia.",
+  },
+  {
+    id: 14,
+    icon: BookOpen,
+    question: "Di mana saya bisa membaca panduan penggunaan aplikasi?",
+    answer:
+      "Buka menu Profil lalu pilih Buku Manual. Panduan tampil sebagai PDF di dalam aplikasi dan dapat diunduh atau dibagikan.",
+  },
+  {
+    id: 15,
     icon: Headset,
     question: "Siapa yang bisa saya hubungi jika mengalami kendala?",
     answer:
-      "Hubungi tim support melalui menu Notifikasi bagian Chat, atau hubungi admin area Anda untuk bantuan lebih lanjut.",
+      "Gunakan Chat Pesanan pada transaksi terkait, atau hubungi admin area Anda untuk bantuan lebih lanjut.",
   },
 ];
 
@@ -157,7 +236,12 @@ const Faq = () => {
               returnKeyType="search"
             />
             {query.length > 0 ? (
-              <Pressable onPress={() => setQuery("")} hitSlop={8}>
+              <Pressable
+                onPress={() => setQuery("")}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Hapus pencarian"
+              >
                 <X size={18} color={greyColor} />
               </Pressable>
             ) : null}
