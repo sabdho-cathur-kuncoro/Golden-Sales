@@ -65,12 +65,12 @@ describe('setUser', () => {
     expect(setMock).not.toHaveBeenCalled();
   });
   it('preserves topic from the previous user when /me omits it', async () => {
-    useAuthStore.setState({ token: 't', user: { id: 1, topic: 'sales' } });
+    useAuthStore.setState({ token: 't', user: { id: 1, topic: 'sales' } as any });
     await useAuthStore.getState().setUser({ id: 1, name: 'Budi' });
     expect(useAuthStore.getState().user).toMatchObject({ name: 'Budi', topic: 'sales' });
   });
   it('uses the new topic when provided', async () => {
-    useAuthStore.setState({ token: 't', user: { id: 1, topic: 'old' } });
+    useAuthStore.setState({ token: 't', user: { id: 1, topic: 'old' } as any });
     await useAuthStore.getState().setUser({ id: 1, topic: 'new' });
     expect(useAuthStore.getState().user).toMatchObject({ topic: 'new' });
   });
@@ -78,7 +78,7 @@ describe('setUser', () => {
 
 describe('logout', () => {
   it('clears storage and resets session', async () => {
-    useAuthStore.setState({ token: 't', user: { id: 1 }, isAuthenticated: true });
+    useAuthStore.setState({ token: 't', user: { id: 1 } as any, isAuthenticated: true });
     await useAuthStore.getState().logout();
     expect(clearMock).toHaveBeenCalled();
     const s = useAuthStore.getState();

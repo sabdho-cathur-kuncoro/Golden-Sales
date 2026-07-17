@@ -61,10 +61,10 @@ describe('Invoice screen', () => {
     expect(await screen.findByText('Invoice tidak ditemukan')).toBeTruthy();
   });
 
-  it('renders the order tax row when orderTaxAmount > 0', async () => {
-    getDetail.mockResolvedValueOnce(taxedPromoOrder);
+  it('renders the voucher discount row when discountVoucher > 0', async () => {
+    getDetail.mockResolvedValueOnce({ ...taxedPromoOrder, discountVoucher: 5000 });
     await render(<InvoiceScreen />);
-    expect(await screen.findByText('Order Tax (11%)')).toBeTruthy();
+    expect(await screen.findByText('Diskon Voucher')).toBeTruthy();
   });
 
   it('shows per-item promo: net unit price and Hemat pills', async () => {

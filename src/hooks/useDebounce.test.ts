@@ -19,7 +19,7 @@ describe('useDebounce', () => {
   });
 
   it('updates only after the delay elapses', async () => {
-    const { result, rerender } = await renderHook(({ v }) => useDebounce(v, 300), {
+    const { result, rerender } = await renderHook(({ v }: { v: string }) => useDebounce(v, 300), {
       initialProps: { v: 'a' },
     });
     await rerender({ v: 'b' });
@@ -31,7 +31,7 @@ describe('useDebounce', () => {
   });
 
   it('resets the timer on rapid changes (only the last value lands)', async () => {
-    const { result, rerender } = await renderHook(({ v }) => useDebounce(v, 300), {
+    const { result, rerender } = await renderHook(({ v }: { v: string }) => useDebounce(v, 300), {
       initialProps: { v: 'a' },
     });
     await rerender({ v: 'b' });

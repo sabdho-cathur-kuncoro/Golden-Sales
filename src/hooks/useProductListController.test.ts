@@ -17,7 +17,7 @@ const PRODUCTS = [
 
 beforeEach(() => {
   jest.clearAllMocks();
-  useAuthStore.setState({ user: { id: 1, name: 'Sales' } });
+  useAuthStore.setState({ user: { id: 1, name: 'Sales' } as any });
   useCartStore.setState({ warehouse: null });
   useProductsMock.mockReturnValue({ products: PRODUCTS, loading: false, fetchProducts });
 });
