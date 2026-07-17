@@ -5,7 +5,6 @@ import {
   darkPrimaryColor,
   FontFamily,
   greenColor,
-  greenRGBAColor,
   greyTextStyle,
   lineColor,
   orangeColor,
@@ -120,14 +119,7 @@ const InvoiceScreen = () => {
     const buyer = hasCustomer ? order.customer : null;
     const su = sales ?? ({} as any);
 
-    const promoTotal = (order.items || []).reduce(
-      (s: number, i: any) => s + num(i?.discount),
-      0
-    );
-    const baseSubtotal = (order.items || []).reduce(
-      (s: number, i: any) => s + num(i?.unitPrice) * num(i?.quantity),
-      0
-    );
+    const baseSubtotal = num(order?.subtotal) || 0;
 
     const moneyRow = (label: string, value: number) => {
       const neg = value < 0;
@@ -157,16 +149,14 @@ const InvoiceScreen = () => {
               : num(it.unitPrice);
           const priceHtml =
             lineDiscount > 0
-              ? `<div class="muted sm"><s>@ ${currencyFormat(
+              ? `<div class="muted sm"><s>@${currencyFormat(
                   it.unitPrice
-                )}</s> <span style="color:#B20605">@ ${currencyFormat(
+                )}</s> <span style="color:#B20605">@${currencyFormat(
                   unitNet
                 )}</span></div><div class="hemat">Hemat ${currencyFormat(
                   lineDiscount
                 )}</div>`
-              : `<div class="muted sm">@ ${currencyFormat(
-                  it.unitPrice
-                )}</div>`;
+              : `<div class="muted sm">@${currencyFormat(it.unitPrice)}</div>`;
           return `<div class="irow">
             <div><div class="pname">${it.productName ?? ""}</div>${snHtml}
               ${priceHtml}</div>
@@ -192,7 +182,7 @@ const InvoiceScreen = () => {
           <div><div class="pname">${g.productName ?? ""}</div>
             <div class="muted sm"><b>${
               g.rows.length
-            } nomor</b> · @ ${currencyFormat(g.unitPrice)}</div>
+            } nomor</b> · @${currencyFormat(g.unitPrice)}</div>
             ${
               num(g.totalDiscount) > 0
                 ? `<div class="hemat">Hemat ${currencyFormat(
@@ -305,23 +295,15 @@ const InvoiceScreen = () => {
           ${itemsHtml}
         </div>
         <div class="totals">
-          ${moneyRow("Subtotal Barang", baseSubtotal)}
+          ${moneyRow("Subtotal (setelah promo)", baseSubtotal)}
           ${
-            promoTotal > 0
-              ? moneyRow("Diskon Promo Produk", -Math.abs(promoTotal))
+            Math.abs(num(order.discountVoucher)) > 0
+              ? moneyRow("Diskon Voucher", Math.abs(num(order.discountVoucher)))
               : ""
           }
           ${
             Math.abs(num(order.discount)) > 0
-              ? moneyRow("Diskon Voucher", -Math.abs(num(order.discount)))
-              : ""
-          }
-          ${
-            num(order.orderTaxAmount) > 0
-              ? moneyRow(
-                  `Order Tax (${num(order.orderTax)}%)`,
-                  num(order.orderTaxAmount)
-                )
+              ? moneyRow("Diskon Lain-lain", Math.abs(num(order.discount)))
               : ""
           }
           ${moneyRow("Biaya Pengiriman", num(order.deliveryFee))}
@@ -449,15 +431,9 @@ const InvoiceScreen = () => {
   const su: any = sales ?? {};
   const groups = groupOrderItems(order.items);
 
-  const baseSubtotal = (order.items || []).reduce(
-    (s: number, i: any) => s + num(i?.unitPrice) * num(i?.quantity),
-    0
-  );
-  const promoTotal = (order.items || []).reduce(
-    (s: number, i: any) => s + num(i?.discount),
-    0
-  );
-  const voucherDiscount = Math.abs(num(order.discount));
+  const baseSubtotal = num(order?.subtotal) || 0;
+  const voucherDiscount = Math.abs(num(order.discountVoucher)) || 0;
+  const discount = Math.abs(num(order.discount)) || 0;
 
   return (
     <LinearGradient
@@ -667,25 +643,23 @@ const InvoiceScreen = () => {
                                   },
                                 ]}
                               >
-                                @ {currencyFormat(it.unitPrice)}
+                                @{currencyFormat(it.unitPrice)}
                               </Text>
                               <Text
                                 style={{ fontSize: 10, color: primaryColor }}
                               >
-                                @ {currencyFormat(unitNet)}
+                                @{currencyFormat(unitNet)}
                               </Text>
                             </View>
                           ) : (
                             <Text style={[greyTextStyle, { fontSize: 10 }]}>
-                              @ {currencyFormat(it.unitPrice)}
+                              @{currencyFormat(it.unitPrice)}
                             </Text>
                           )}
                           {hasPromo ? (
-                            <View style={styles.pillPromo}>
-                              <Text style={styles.pillPromoTxt}>
-                                Hemat {currencyFormat(lineDiscount)}
-                              </Text>
-                            </View>
+                            <Text style={styles.pillPromoTxt}>
+                              Hemat {currencyFormat(lineDiscount)}
+                            </Text>
                           ) : null}
                         </View>
                         <Text style={[styles.cell, styles.colQty]}>
@@ -733,15 +707,13 @@ const InvoiceScreen = () => {
                             </Text>
                           </View>
                           <Text style={[greyTextStyle, { fontSize: 10 }]}>
-                            @ {currencyFormat(g.unitPrice)}
+                            @{currencyFormat(g.unitPrice)}
                           </Text>
                         </View>
                         {num(g.totalDiscount) > 0 ? (
-                          <View style={styles.pillPromo}>
-                            <Text style={styles.pillPromoTxt}>
-                              Hemat {currencyFormat(g.totalDiscount)}
-                            </Text>
-                          </View>
+                          <Text style={styles.pillPromoTxt}>
+                            Hemat {currencyFormat(g.totalDiscount)}
+                          </Text>
                         ) : null}
                       </View>
                       <Text style={[styles.cell, styles.colQty]}>
@@ -788,21 +760,12 @@ const InvoiceScreen = () => {
 
             {/* Totals */}
             <View style={{ marginTop: SPACE_16 }}>
-              <MoneyRow label="Subtotal Barang" value={baseSubtotal} />
-              {promoTotal > 0 ? (
-                <MoneyRow
-                  label="Diskon Promo Produk"
-                  value={-Math.abs(promoTotal)}
-                />
-              ) : null}
+              <MoneyRow label="Subtotal (setelah promo)" value={baseSubtotal} />
               {voucherDiscount > 0 ? (
-                <MoneyRow label="Diskon Voucher" value={-voucherDiscount} />
+                <MoneyRow label="Diskon Voucher" value={voucherDiscount} />
               ) : null}
-              {num(order.orderTaxAmount) > 0 ? (
-                <MoneyRow
-                  label={`Order Tax (${num(order.orderTax)}%)`}
-                  value={num(order.orderTaxAmount)}
-                />
+              {discount > 0 ? (
+                <MoneyRow label="Diskon Lain-lain" value={discount} />
               ) : null}
               <MoneyRow
                 label="Biaya Pengiriman"
@@ -888,7 +851,6 @@ const InvoiceScreen = () => {
 };
 
 const MoneyRow = ({ label, value }: { label: string; value: number }) => {
-  const neg = value < 0;
   return (
     <View style={[styles.row, styles.between, { paddingVertical: 3 }]}>
       <Text style={[greyTextStyle, { fontSize: 12 }]}>{label}</Text>
@@ -896,10 +858,9 @@ const MoneyRow = ({ label, value }: { label: string; value: number }) => {
         style={{
           fontSize: 12,
           fontFamily: FontFamily.satoshiMedium,
-          color: neg ? greenColor : blackColor,
+          color: blackColor,
         }}
       >
-        {neg ? "- " : ""}
         {currencyFormat(Math.abs(value || 0))}
       </Text>
     </View>
@@ -1077,16 +1038,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-  },
-  pillPromo: {
-    alignSelf: "flex-start",
-    marginTop: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    backgroundColor: greenRGBAColor,
-    borderWidth: 1,
-    borderColor: greenColor,
-    borderRadius: 999,
   },
   pillPromoTxt: {
     color: greenColor,

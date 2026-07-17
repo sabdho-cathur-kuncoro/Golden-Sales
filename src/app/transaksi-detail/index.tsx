@@ -264,11 +264,7 @@ const TransaksiDetail = () => {
     .join(" · ");
 
   // payment breakdown
-  const baseSubtotal = items.reduce(
-    (s, i) => s + num(i?.unitPrice) * num(i?.quantity),
-    0
-  );
-  const promoTotal = items.reduce((s, i) => s + num(i?.discount), 0);
+  const baseSubtotal = num(order?.subtotal) || 0;
   const voucherDiscount = Math.abs(num(order?.discountVoucher));
   const voucherOthers = Math.abs(num(order?.discount));
 
@@ -755,27 +751,25 @@ const TransaksiDetail = () => {
           <Gap height={10} />
           <View style={line} />
           <Gap height={SPACE_16} />
-          <Money label="Subtotal Barang" value={baseSubtotal} />
-          {promoTotal > 0 ? (
-            <>
-              <Gap height={SPACE_8} />
-              <Money label="Diskon Promo Produk" value={-promoTotal} />
-            </>
-          ) : null}
+          <Money label="Subtotal (setelah promo)" value={baseSubtotal} />
           {voucherDiscount > 0 ? (
             <>
               <Gap height={SPACE_8} />
-              <Money label="Diskon Voucher" value={-voucherDiscount} />
+              <Money
+                label="Diskon Voucher"
+                value={voucherDiscount}
+                isVoucher={true}
+              />
             </>
           ) : null}
           {voucherOthers > 0 ? (
             <>
               <Gap height={SPACE_8} />
-              <Money label="Diskon Lain-lain" value={-voucherOthers} />
+              <Money label="Diskon Lain-lain" value={voucherOthers} />
             </>
           ) : null}
           <Gap height={SPACE_8} />
-          <Money label="Pengiriman" value={num(order?.deliveryFee)} />
+          <Money label="Biaya Pengiriman" value={num(order?.deliveryFee)} />
           <Gap height={SPACE_16} />
           <View style={line} />
           <Gap height={SPACE_16} />
@@ -917,16 +911,15 @@ const Row = ({ label, value }: any) => (
   </View>
 );
 
-const Money = ({ label, value }: any) => (
+const Money = ({ label, value, isVoucher = false }: any) => (
   <View style={[rowCenter]}>
     <Text style={[greyTextStyle, { fontSize: 12 }]}>{label}</Text>
     <Text
       style={[
-        value < 0 ? greenTextStyle : blackTextStyle,
+        isVoucher ? greenTextStyle : blackTextStyle,
         { fontSize: 12, fontFamily: FontFamily.satoshiMedium },
       ]}
     >
-      {value < 0 ? "- " : ""}
       {currencyFormat(Math.abs(value || 0))}
     </Text>
   </View>
