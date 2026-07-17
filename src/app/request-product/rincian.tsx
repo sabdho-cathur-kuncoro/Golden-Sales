@@ -26,7 +26,7 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { currencyFormat } from "../../../utils/currencyFormat";
 
 const RincianRequestProduct = () => {
-  const { id, name } = useLocalSearchParams();
+  const { name } = useLocalSearchParams();
   return (
     <View style={[screen, { backgroundColor: whiteColor }]}>
       <Header

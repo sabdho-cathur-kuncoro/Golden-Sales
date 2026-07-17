@@ -10,7 +10,6 @@ import {
   blackColor,
   blackTextStyle,
   darkPrimaryColor,
-  dot,
   FontFamily,
   greyColor,
   greyTextStyle,

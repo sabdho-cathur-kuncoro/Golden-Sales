@@ -43,7 +43,7 @@ import {
 import { currencyFormat } from "../../../utils/currencyFormat";
 
 const RincianOrder = () => {
-  const { id, name } = useLocalSearchParams();
+  const { name } = useLocalSearchParams();
   const { selectedAddress, setAddress } = useGlobalStore();
   const openSheet = useBottomSheetStore((s) => s.open);
   const closeSheet = useBottomSheetStore((s) => s.close);

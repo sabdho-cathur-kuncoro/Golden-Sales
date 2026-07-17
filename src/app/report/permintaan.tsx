@@ -12,7 +12,6 @@ import {
   blackTextStyle,
   borderInputColor,
   darkPrimaryColor,
-  dot,
   FontFamily,
   greenColor,
   greenRGBAColor,
