@@ -16,8 +16,10 @@ describe('currencyFormat', () => {
   it('handles negatives', () => {
     expect(strip(currencyFormat(-2500))).toBe('-Rp2.500');
   });
-  it('keeps fractions (only minimumFractionDigits is set, no rounding)', () => {
-    // id-ID uses comma as decimal separator; fractional input is NOT rounded.
-    expect(strip(currencyFormat(1000.6))).toBe('Rp1.000,6');
+  it('rounds fractions away (IDR has 0 minor units, so maxFractionDigits defaults to 0)', () => {
+    // currency style forces maximumFractionDigits to IDR's 0 units, so
+    // fractional input is rounded to whole rupiah.
+    expect(strip(currencyFormat(1000.6))).toBe('Rp1.001');
+    expect(strip(currencyFormat(1000.4))).toBe('Rp1.000');
   });
 });
