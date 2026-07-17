@@ -1,0 +1,173 @@
+name: Android Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Build Environment"
+        required: true
+        type: choice
+        options:
+          - UAT
+          - Production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}-${{ inputs.environment }}
+  cancel-in-progress: true
+
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   Per env (suffix _UAT / _PRODUCTION):
+#     API_BASE_URL_*, PUBLIC_BEARER_UAT / PUBLIC_BEARER_PRD,
+#     GOOGLE_SERVICES_JSON_B64_*, FIREBASE_ANDROID_APP_ID_*,
+#     FIREBASE_SERVICE_ACCOUNT_JSON_*, FIREBASE_TESTER_GROUPS_*
+#   Shared (one keystore signs both environments):
+#     ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS,
+#     ANDROID_KEY_PASSWORD
+# *_B64 secrets hold `base64 <file>` output. Firebase App Distribution consumes the APK.
+
+jobs:
+  quality:
+    name: Quality (Lint, Type Check, Test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test -- --ci
+
+  build:
+    name: Build (Android)
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle (cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Materialize .env
+        run: |
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            API_BASE_URL="${{ secrets.API_BASE_URL_PRODUCTION }}"
+            PUBLIC_BEARER="${{ secrets.PUBLIC_BEARER_PRD }}"
+            DEV_TOOLS="false"
+          else
+            API_BASE_URL="${{ secrets.API_BASE_URL_UAT }}"
+            PUBLIC_BEARER="${{ secrets.PUBLIC_BEARER_UAT }}"
+            DEV_TOOLS="true"
+          fi
+          cat > .env <<EOF
+          EXPO_PUBLIC_API_BASE_URL=$API_BASE_URL
+          PUBLIC_BEARER=$PUBLIC_BEARER
+          EXPO_PUBLIC_ENABLE_DEV_TOOLS=$DEV_TOOLS
+          EOF
+
+      - name: Materialize Firebase config
+        run: |
+          mkdir -p config
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_B64_PRODUCTION }}" | base64 -d > config/google-services.json
+          else
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_B64_UAT }}" | base64 -d > config/google-services.json
+          fi
+
+      - name: Read app version
+        id: meta
+        run: |
+          VERSION=$(npx expo config --json --type public | jq -r '.version')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Prebuild (Android)
+        env:
+          ANDROID_VERSION_CODE: ${{ github.run_number }}
+        run: npx expo prebuild --platform android --clean --no-install
+
+      - name: Materialize keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$GITHUB_WORKSPACE/config/release.jks"
+          cat > config/keystore.properties <<EOF
+          storeFile=$GITHUB_WORKSPACE/config/release.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Build release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: belanjayuk-android-${{ inputs.environment }}
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+  distribute:
+    name: Distribute (Firebase)
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Short commit hash
+        id: sha
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: belanjayuk-android-${{ inputs.environment }}
+
+      - name: Distribute to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ inputs.environment == 'Production' && secrets.FIREBASE_ANDROID_APP_ID_PRODUCTION || secrets.FIREBASE_ANDROID_APP_ID_UAT }}
+          serviceCredentialsFileContent: ${{ inputs.environment == 'Production' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON_PRODUCTION || secrets.FIREBASE_SERVICE_ACCOUNT_JSON_UAT }}
+          groups: ${{ inputs.environment == 'Production' && secrets.FIREBASE_TESTER_GROUPS_PRODUCTION || secrets.FIREBASE_TESTER_GROUPS_UAT }}
+          file: app-release.apk
+          releaseNotes: |
+            Environment : ${{ inputs.environment }}
+            Version     : ${{ needs.build.outputs.version }}
+            Build       : ${{ github.run_number }}
+            Branch      : ${{ github.ref_name }}
+            Commit      : ${{ steps.sha.outputs.short }}

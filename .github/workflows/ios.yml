@@ -1,0 +1,253 @@
+name: iOS Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Build Environment"
+        required: true
+        type: choice
+        options:
+          - UAT
+          - Production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}-${{ inputs.environment }}
+  cancel-in-progress: true
+
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   Per env (suffix _UAT / _PRODUCTION):
+#     API_BASE_URL_*, PUBLIC_BEARER_UAT / PUBLIC_BEARER_PRD,
+#     GOOGLE_SERVICES_PLIST_B64_*, FIREBASE_IOS_APP_ID_*,
+#     FIREBASE_SERVICE_ACCOUNT_JSON_*, FIREBASE_TESTER_GROUPS_*,
+#     IOS_PROVISIONING_PROFILE_B64_*, IOS_PROVISIONING_PROFILE_NAME_*
+#   Shared (one Apple Distribution cert signs both environments):
+#     IOS_DIST_CERT_P12_B64, IOS_DIST_CERT_PASSWORD, IOS_TEAM_ID,
+#     IOS_KEYCHAIN_PASSWORD
+# *_B64 secrets hold `base64 <file>` output. Ad-hoc IPA feeds Firebase App Distribution.
+# IOS_PROVISIONING_PROFILE_NAME_* = the exact profile name as shown in the Apple Developer portal.
+
+jobs:
+  quality:
+    name: Quality (Lint, Type Check, Test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test -- --ci
+
+  build:
+    name: Build (iOS)
+    needs: quality
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      SCHEME: SalesBelanjaYuk
+      WORKSPACE: ios/SalesBelanjaYuk.xcworkspace
+      BUNDLE_ID: com.modoto.goldensales
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Materialize .env
+        run: |
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            API_BASE_URL="${{ secrets.API_BASE_URL_PRODUCTION }}"
+            PUBLIC_BEARER="${{ secrets.PUBLIC_BEARER_PRD }}"
+            DEV_TOOLS="false"
+          else
+            API_BASE_URL="${{ secrets.API_BASE_URL_UAT }}"
+            PUBLIC_BEARER="${{ secrets.PUBLIC_BEARER_UAT }}"
+            DEV_TOOLS="true"
+          fi
+          cat > .env <<EOF
+          EXPO_PUBLIC_API_BASE_URL=$API_BASE_URL
+          PUBLIC_BEARER=$PUBLIC_BEARER
+          EXPO_PUBLIC_ENABLE_DEV_TOOLS=$DEV_TOOLS
+          EOF
+
+      - name: Materialize Firebase config
+        run: |
+          mkdir -p config
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_PLIST_B64_PRODUCTION }}" | base64 -d > config/GoogleService-Info.plist
+          else
+            echo "${{ secrets.GOOGLE_SERVICES_PLIST_B64_UAT }}" | base64 -d > config/GoogleService-Info.plist
+          fi
+
+      - name: Read app version
+        id: meta
+        run: |
+          VERSION=$(npx expo config --json --type public | jq -r '.version')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Prebuild (iOS)
+        run: npx expo prebuild --platform ios --clean --no-install
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Import signing certificate
+        env:
+          CERT_B64: ${{ secrets.IOS_DIST_CERT_P12_B64 }}
+          CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          CERT_PATH="$RUNNER_TEMP/dist_cert.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          echo "$CERT_B64" | base64 -d > "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          security import "$CERT_PATH" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH" login.keychain-db
+
+      - name: Install provisioning profile
+        run: |
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            PROFILE_B64="${{ secrets.IOS_PROVISIONING_PROFILE_B64_PRODUCTION }}"
+          else
+            PROFILE_B64="${{ secrets.IOS_PROVISIONING_PROFILE_B64_UAT }}"
+          fi
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_DIR"
+          echo "$PROFILE_B64" | base64 -d > "$RUNNER_TEMP/profile.mobileprovision"
+          UUID=$(security cms -D -i "$RUNNER_TEMP/profile.mobileprovision" | plutil -extract UUID raw -)
+          cp "$RUNNER_TEMP/profile.mobileprovision" "$PROFILES_DIR/$UUID.mobileprovision"
+
+      - name: Archive
+        env:
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            PROFILE_NAME="${{ secrets.IOS_PROVISIONING_PROFILE_NAME_PRODUCTION }}"
+          else
+            PROFILE_NAME="${{ secrets.IOS_PROVISIONING_PROFILE_NAME_UAT }}"
+          fi
+          xcodebuild archive \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/app.xcarchive" \
+            -destination "generic/platform=iOS" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
+
+      - name: Export IPA
+        env:
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            PROFILE_NAME="${{ secrets.IOS_PROVISIONING_PROFILE_NAME_PRODUCTION }}"
+          else
+            PROFILE_NAME="${{ secrets.IOS_PROVISIONING_PROFILE_NAME_UAT }}"
+          fi
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>ad-hoc</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>teamID</key>
+            <string>$TEAM_ID</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>$BUNDLE_ID</key>
+              <string>$PROFILE_NAME</string>
+            </dict>
+            <key>compileBitcode</key>
+            <false/>
+            <key>stripSwiftSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/app.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+
+          mkdir -p artifacts
+          cp "$RUNNER_TEMP/export/"*.ipa artifacts/app-release.ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: belanjayuk-ios-${{ inputs.environment }}
+          path: artifacts/app-release.ipa
+          if-no-files-found: error
+
+  distribute:
+    name: Distribute (Firebase)
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Short commit hash
+        id: sha
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Download IPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: belanjayuk-ios-${{ inputs.environment }}
+
+      - name: Distribute to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ inputs.environment == 'Production' && secrets.FIREBASE_IOS_APP_ID_PRODUCTION || secrets.FIREBASE_IOS_APP_ID_UAT }}
+          serviceCredentialsFileContent: ${{ inputs.environment == 'Production' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON_PRODUCTION || secrets.FIREBASE_SERVICE_ACCOUNT_JSON_UAT }}
+          groups: ${{ inputs.environment == 'Production' && secrets.FIREBASE_TESTER_GROUPS_PRODUCTION || secrets.FIREBASE_TESTER_GROUPS_UAT }}
+          file: app-release.ipa
+          releaseNotes: |
+            Environment : ${{ inputs.environment }}
+            Version     : ${{ needs.build.outputs.version }}
+            Build       : ${{ github.run_number }}
+            Branch      : ${{ github.ref_name }}
+            Commit      : ${{ steps.sha.outputs.short }}
