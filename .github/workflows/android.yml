@@ -66,6 +66,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: false
+          large-packages: false
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:

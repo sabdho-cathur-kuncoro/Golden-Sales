@@ -72,6 +72,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Free disk space
+        run: |
+          df -h /
+          # Keep the selected Xcode, drop the rest (~10-15GB each)
+          ACTIVE="$(xcode-select -p | sed 's:/Contents/Developer::')"
+          for XC in /Applications/Xcode_*.app; do
+            [ "$XC" = "$ACTIVE" ] || sudo rm -rf "$XC"
+          done
+          sudo rm -rf ~/Library/Developer/CoreSimulator/Caches/* || true
+          xcrun simctl delete unavailable || true
+          df -h /
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
