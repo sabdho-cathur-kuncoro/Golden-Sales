@@ -133,9 +133,8 @@ export const FlashSaleCardSkeleton = () => {
 };
 
 export const FlashSaleCardEmpty = () => {
-  const { width } = useWindowDimensions();
   return (
-    <View style={[styles.emptyContainer, { width: width - 52 }]}>
+    <View style={styles.emptyContainer}>
       <Flame size={32} color={greyTextStyle.color as string} />
       <Gap height={8} />
       <Text style={[blackTextStyle, { fontFamily: FontFamily.satoshiBold }]}>
@@ -185,7 +184,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     maxHeight: 200,
-    flex: 1,
+    alignSelf: "flex-start",
     backgroundColor: whiteColor,
     padding: SPACE_16,
     borderRadius: 10,
